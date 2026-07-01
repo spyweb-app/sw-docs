@@ -1,0 +1,228 @@
+---
+title: Hook Reference
+description: Complete reference for all Lua hook functions in SpyWeb's execution pipeline.
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+Every scrape run flows through a series of **pipeline hooks** you can define in your Lua script. Each hook receives a `request`, `response`, or `items` table plus the shared `ctx`, and can modify data, skip stages, or inject side effects.
+
+:::note
+**All hooks are optional.** Omit any you don't need, SpyWeb runs fine with just a `config.toml`.
+:::
+
+## Key Rules
+
+- Return the value (modified or not) to **continue** the pipeline
+- Return `nil` or `false` to **drop/skip** (behavior varies per hook)
+- Hook errors are **logged and skipped**, they never crash the job
+- Only define the hooks you actually need. SpyWeb pre-detects which functions exist at startup and skips the processing logic entirely for any that are missing.
+
+## What is `ctx`?
+
+Every hook receives a per-cycle context table as its second argument. `ctx` is a scratch table created fresh for each scrape cycle and discarded at the end. Use it to pass data between hooks within the same cycle (e.g., store a value in `before_fetch` and read it in `after_extract`).
+
+It also carries reserved fields set by the engine:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `ctx.last_fetch` | table | FetchAttempt envelope with `request`, `ok`, `response` (on success), and `error` (on failure) |
+| `ctx.selector_matches` | number | Number of CSS selector hits |
+| `ctx.telemetry` | table | Performance telemetry for the cycle |
+| `ctx.shared` | table | A table shared across all hooks in the cycle |
+
+## Pipeline Stages
+
+The hooks execute in this exact order during each scrape cycle:
+
+<div class="pipeline-container">
+  <div class="pipeline-flow">
+    <div class="pipeline-stage stage-executor">
+      <div class="stage-header">
+        <span class="stage-name">before_fetch(request, ctx)</span>
+        <span class="stage-thread">executor thread</span>
+      </div>
+      <p class="stage-desc">Modify URL, add headers, or return nil to skip this run entirely.</p>
+    </div>
+
+    <div class="pipeline-stage stage-executor">
+      <div class="stage-header">
+        <span class="stage-name">override_fetch(request, ctx)</span>
+        <span class="stage-thread">executor thread</span>
+      </div>
+      <p class="stage-desc">Custom fetching phase (bypasses built-in HTTP client if defined).</p>
+    </div>
+
+    <div class="pipeline-stage stage-background">
+      <div class="stage-header">
+        <span class="stage-name">[HTTP fetch]</span>
+        <span class="stage-thread">background thread</span>
+      </div>
+      <p class="stage-desc">Automatic — uses request config from previous stage.</p>
+    </div>
+
+    <div class="pipeline-stage stage-executor">
+      <div class="stage-header">
+        <span class="stage-name">after_fetch(fetch_result, ctx)</span>
+        <span class="stage-thread">executor thread</span>
+      </div>
+      <p class="stage-desc">Inspect success or failure, mutate body on success, or return a synthetic response to recover from fetch errors.</p>
+    </div>
+
+    <div class="pipeline-stage stage-executor">
+      <div class="stage-header">
+        <span class="stage-name">override_extract(response, ctx)</span>
+        <span class="stage-thread">executor thread</span>
+      </div>
+      <p class="stage-desc">Custom extraction phase for JSON/XML (bypasses built-in CSS extraction if defined).</p>
+    </div>
+
+    <div class="pipeline-stage stage-background">
+      <div class="stage-header">
+        <span class="stage-name">[CSS extraction]</span>
+        <span class="stage-thread">background thread</span>
+      </div>
+      <p class="stage-desc">Automatic — raw parser with DOM fallback.</p>
+    </div>
+
+    <div class="pipeline-stage stage-executor">
+      <div class="stage-header">
+        <span class="stage-name">after_extract(items, ctx)</span>
+        <span class="stage-thread">executor thread</span>
+      </div>
+      <p class="stage-desc">Batch filter/modify all items. nil or empty = no items.</p>
+    </div>
+
+    <div class="pipeline-stage stage-executor">
+      <div class="stage-header">
+        <span class="stage-name">filter_item(item, ctx)</span>
+        <span class="stage-thread">executor thread</span>
+      </div>
+      <p class="stage-desc">Per-item filter. <strong>Replaces</strong> built-in keyword filter if defined.</p>
+    </div>
+
+    <div class="pipeline-stage stage-executor">
+      <div class="stage-header">
+        <span class="stage-name">before_store(items, ctx)</span>
+        <span class="stage-thread">executor thread</span>
+      </div>
+      <p class="stage-desc">Last chance before DB insert. nil = skip store + notify.</p>
+    </div>
+
+    <div class="pipeline-stage stage-background">
+      <div class="stage-header">
+        <span class="stage-name">[dedup + insert]</span>
+        <span class="stage-thread">background thread</span>
+      </div>
+      <p class="stage-desc">Automatic — atomic check-and-insert.</p>
+    </div>
+
+    <div class="pipeline-stage stage-executor">
+      <div class="stage-header">
+        <span class="stage-name">before_notify(items, ctx)</span>
+        <span class="stage-thread">executor thread</span>
+      </div>
+      <p class="stage-desc">Reshape or silence notifications. Items already stored.</p>
+    </div>
+
+    <div class="pipeline-stage stage-executor">
+      <div class="stage-header">
+        <span class="stage-name">before_webhook(payload, ctx)</span>
+        <span class="stage-thread">executor thread</span>
+      </div>
+      <p class="stage-desc">Reshape or silence webhook POSTs. Full JSON payload.</p>
+    </div>
+
+    <div class="pipeline-stage stage-background">
+      <div class="stage-header">
+        <span class="stage-name">[notify + webhook]</span>
+        <span class="stage-thread">background thread</span>
+      </div>
+      <p class="stage-desc">Automatic — desktop notification + webhook POST.</p>
+    </div>
+  </div>
+</div>
+
+## Lifecycle Hooks
+
+After each scrape cycle completes (success or failure), these hooks fire:
+
+| Hook | When | Parameters | Location |
+|------|------|------------|----------|
+| `on_success(ctx)` | Cycle completed without errors | `ctx` | `defer.lua` |
+| `on_error(err, ctx)` | Cycle failed with an error | `error_message`, `ctx` | `defer.lua` |
+| `on_finally(ctx)` | Always, after success or error | `ctx` | `defer.lua` |
+| `on_finished()` | After all workers finish a cycle | none | `hooks.lua` |
+
+:::note
+`on_success`, `on_error`, and `on_finally` must be defined in `defer.lua`, not the main hook file. `on_finished` can be defined in the main hook file.
+:::
+
+<style>
+{`
+  .pipeline-container {
+    margin: 2rem 0;
+  }
+  .pipeline-flow {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-width: 100%;
+    margin: 0 auto;
+  }
+  .pipeline-stage {
+    background: var(--sl-color-gray-6);
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 8px;
+    padding: 10px 14px;
+    position: relative;
+    z-index: 1;
+  }
+  .pipeline-stage:hover {
+    transform: translateX(8px);
+    border-color: var(--sl-color-gray-3);
+  }
+  .stage-executor {
+    border-left: 4px solid #e11d48;
+  }
+  .stage-executor .stage-name {
+    color: #fda4af;
+  }
+  .stage-executor .stage-thread {
+    color: #e11d48;
+  }
+  .stage-background {
+    border-left: 4px solid #38bdf8;
+    background: rgba(56, 189, 248, 0.05);
+  }
+  .stage-background .stage-name {
+    color: #7dd3fc;
+  }
+  .stage-background .stage-thread {
+    color: #38bdf8;
+  }
+  .stage-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+  }
+  .stage-name {
+    font-family: var(--sl-font-mono);
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+  .stage-thread {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+  }
+  .stage-desc {
+    margin: 0 !important;
+    font-size: 0.8rem;
+    color: var(--sl-color-gray-2);
+    line-height: 1.4;
+  }
+`}
+</style>

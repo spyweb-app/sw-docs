@@ -1,0 +1,99 @@
+---
+import config from 'virtual:starlight/user-config';
+import LanguageSelect from 'virtual:starlight/components/LanguageSelect';
+import Search from 'virtual:starlight/components/Search';
+import SocialIcons from 'virtual:starlight/components/SocialIcons';
+import ThemeSelect from 'virtual:starlight/components/ThemeSelect';
+
+const shouldRenderSearch =
+config.pagefind || config.components.Search !== '@astrojs/starlight/components/Search.astro';
+const { siteTitleHref } = Astro.locals.starlightRoute;
+---
+<div class="header">
+	<div class="logo">
+		<a href={siteTitleHref} class="site-title">
+			<svg width="28" height="28" viewBox="130 130 420 420" style="flex-shrink:0">
+				<g stroke="#e11d48" stroke-width="20" fill="none" stroke-linejoin="round" stroke-linecap="round">
+					<line x1="340" y1="340" x2="550" y2="340"/>
+					<line x1="340" y1="340" x2="489" y2="489"/>
+					<line x1="340" y1="340" x2="340" y2="550"/>
+					<line x1="340" y1="340" x2="191" y2="489"/>
+					<line x1="340" y1="340" x2="130" y2="340"/>
+					<line x1="340" y1="340" x2="191" y2="191"/>
+					<line x1="340" y1="340" x2="340" y2="130"/>
+					<line x1="340" y1="340" x2="489" y2="191"/>
+					<path d="M 450,340 Q 420,365 418,418 Q 365,420 340,450 Q 315,420 262,418 Q 260,365 230,340 Q 260,315 262,262 Q 315,260 340,230 Q 365,260 418,262 Q 420,315 450,340"/>
+					<path d="M 538,340 Q 472,395 480,480 Q 395,472 340,538 Q 285,472 200,480 Q 208,395 142,340 Q 208,285 200,200 Q 285,208 340,142 Q 395,208 480,200 Q 472,285 538,340"/>
+				</g>
+			</svg>
+			<span class="title-text">Spy<b>Web</b></span>
+		</a>
+	</div>
+	<div class="search">
+		{shouldRenderSearch && <Search />}
+	</div>
+	<div class="right-group">
+		<div class="sl-flex social-icons">
+			<SocialIcons />
+		</div>
+		<ThemeSelect />
+		<LanguageSelect />
+	</div>
+</div>
+<style lang="scss">
+	.header {
+		@apply grid items-center;
+		grid-template-columns: auto 1fr auto;
+		max-width: 1300px;
+		margin-inline: auto;
+		gap: var(--sl-nav-gap);
+		height: 100%;
+	}
+	
+	.site-title {
+		@apply flex items-center gap-2 no-underline whitespace-nowrap;
+		color: var(--sl-color-text-accent);
+		font-size: var(--sl-text-h4);
+		font-weight: 600;
+	}
+	
+	.title-text {
+		font-size: 1.25rem;
+	}
+	
+	.title-text b {
+		background: linear-gradient(135deg, #e11d48, #9f1239);
+		-webkit-background-clip: text;
+		background-clip: text;
+		-webkit-text-fill-color: transparent;
+		font-weight: 800;
+	}
+	
+	.search {
+		@apply justify-self-stretch flex;
+		max-width: 36rem;
+	}
+	
+	.search :global(site-search) {
+		@apply w-full;
+	}
+	
+	.search :global(button[data-open-modal]) {
+		@apply w-full;
+		max-width: none;
+	}
+	
+	.right-group {
+		@apply flex items-center gap-4;
+	}
+	
+	.social-icons {
+		@apply flex items-center gap-4;
+	}
+	
+	.social-icons::after {
+		content: '';
+		height: 2rem;
+		border-inline-end: 1px solid var(--sl-color-gray-5);
+	}
+</style>

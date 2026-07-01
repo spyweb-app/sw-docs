@@ -1,0 +1,46 @@
+---
+export interface Props {
+  name: string;
+  params: string;
+  async?: boolean;
+}
+
+const { name, params, async: isAsync = false } = Astro.props;
+---
+
+<div class="fn-sig">
+  <span class="fn-name">{name}</span>
+  <span class="fn-paren">(</span><span class="fn-param">{params}</span><span class="fn-paren">)</span>
+</div>
+<span class:list={['fn-badge', { 'fn-badge-async': isAsync }]}>{isAsync ? 'async' : 'sync'}</span>
+
+<style lang="scss">
+.fn-sig {
+  @apply inline-flex items-center gap-3 px-4 py-2 rounded-lg text-[0.9em];
+  background: var(--sl-color-gray-6);
+  border: 1px solid var(--sl-color-gray-5);
+  font-family: var(--__sl-font-mono);
+}
+
+.fn-name {
+  @apply font-semibold;
+  color: var(--sl-color-text-accent);
+}
+
+.fn-paren {
+  color: var(--sl-color-gray-3);
+}
+
+.fn-param {
+  color: #22c55e;
+}
+
+.fn-badge {
+  @apply text-[0.7em] rounded px-2 py-[0.15em] ml-2 font-mono text-white;
+  background: var(--sl-color-gray-5);
+}
+
+.fn-badge-async {
+  background: #d97706;
+}
+</style>
