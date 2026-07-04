@@ -1,8 +1,10 @@
 import { defineConfig } from "astro/config";
 import starlight from "@astrojs/starlight";
 import unocss from "@unocss/astro";
+import sitemap from "@astrojs/sitemap";
 
 export default defineConfig({
+  site: "https://docs.spyweb.app",
   base: "/",
   integrations: [
     unocss({ injectReset: false }),
@@ -56,5 +58,6 @@ export default defineConfig({
         },
       ],
     }),
+    sitemap(),
   ],
 });
