@@ -1,0 +1,119 @@
+---
+title: Browser & Context API
+description: browser:* and context:* methods.
+sidebar:
+  order: 4
+---
+
+## Browser Methods
+
+### `browser:attach([opts])`
+
+<span style="background:#6b7280;color:white;font-size:0.7em;padding:0.15em 0.5em;border-radius:4px">async</span>
+
+Returns a `Page` object.
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `url` | string | `about:blank` | Initial URL |
+| `reuse` | boolean | `true` | Reuse a blank tab if available |
+| `browserContextId` | string | - | Attach to a specific isolated context |
+
+```lua
+local page = browser:attach()
+-- or with options
+local page = browser:attach({ url = "https://example.com", reuse = false })
+```
+
+### `browser:new_context()`
+
+<span style="background:#6b7280;color:white;font-size:0.7em;padding:0.15em 0.5em;border-radius:4px">async</span>
+
+Creates an isolated session. Returns a `Context` object.
+
+```lua
+local ctx = browser:new_context()
+local page = ctx:attach("https://example.com")
+```
+
+### `browser:close()`
+
+<span style="background:#6b7280;color:white;font-size:0.7em;padding:0.15em 0.5em;border-radius:4px">sync</span>
+
+Closes the browser and kills the process.
+
+```lua
+browser:close()
+```
+
+### `browser:get_user_data_dir()`
+
+<span style="background:#6b7280;color:white;font-size:0.7em;padding:0.15em 0.5em;border-radius:4px">sync</span>
+
+Returns the profile path.
+
+```lua
+local profile = browser:get_user_data_dir()
+log("Profile: " .. profile)
+```
+
+### `browser:call(method, params)`
+
+<span style="background:#6b7280;color:white;font-size:0.7em;padding:0.15em 0.5em;border-radius:4px">async</span>
+
+Raw browser-level CDP command.
+
+### `browser:wait_event(event, [timeout_ms], [predicate])`
+
+<span style="background:#6b7280;color:white;font-size:0.7em;padding:0.15em 0.5em;border-radius:4px">async</span>
+
+Wait for a browser-level CDP notification.
+
+### `browser:attach_session(target_id)`
+
+<span style="background:#6b7280;color:white;font-size:0.7em;padding:0.15em 0.5em;border-radius:4px">async</span>
+
+Attach to an existing target by ID. Returns a session ID.
+
+### `browser:call_session(session_id, method, params)`
+
+<span style="background:#6b7280;color:white;font-size:0.7em;padding:0.15em 0.5em;border-radius:4px">async</span>
+
+Call CDP method on a specific session.
+
+### `browser:wait_session_event(session_id, event, [opts])`
+
+<span style="background:#6b7280;color:white;font-size:0.7em;padding:0.15em 0.5em;border-radius:4px">async</span>
+
+Wait for session-level events.
+
+---
+
+## Context Methods
+
+Returned by `browser:new_context()`.
+
+### `context.id`
+
+The unique string ID of the context.
+
+### `context:attach([url])`
+
+<span style="background:#6b7280;color:white;font-size:0.7em;padding:0.15em 0.5em;border-radius:4px">async</span>
+
+Creates a new page within this isolated context.
+
+```lua
+local ctx = browser:new_context()
+local page = ctx:attach("https://example.com")
+```
+
+### `context:close()`
+
+<span style="background:#6b7280;color:white;font-size:0.7em;padding:0.15em 0.5em;border-radius:4px">sync</span>
+
+Closes the context and all associated pages.
+
+```lua
+ctx:close()
+```

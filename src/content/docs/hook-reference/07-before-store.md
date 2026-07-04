@@ -22,7 +22,7 @@ function before_store(items, ctx) -> table | nil
 | Return | Effect |
 |--------|--------|
 | Array of items | Continue with store + notify |
-| `nil` | Skip store and notify entirely |
+| `nil` / `false` | Skip store and notify entirely |
 
 ## Example
 
@@ -39,5 +39,5 @@ end
 
 ## See Also
 
-- [filter_item](/hook-reference/filter-item) — Per-item filter before store
-- [before_notify](/hook-reference/before-notify) — Modify items before notification
+- [filter_item](/hook-reference/06-filter-item) - Per-item filter before store
+- [before_notify](/hook-reference/08-before-notify) - Modify items before notification

@@ -1,0 +1,72 @@
+---
+title: http_multipart
+description: Performs a multipart/form-data POST request for file uploads.
+---
+
+import FunctionSignature from '../../../components/FunctionSignature.astro';
+
+`http_multipart(url, fields, [headers])` performs a multipart/form-data POST request for file uploads. Returns `(response, nil)` on success or `(nil, error_table)` on failure.
+
+## Signature
+
+<FunctionSignature name="http_multipart" params="url, fields, [headers]" async />
+
+:::note
+Default timeout 30s, max response body 10MB. File fields require `content` key. Field values must be strings or tables. Does not support proxy configuration.
+:::
+
+
+## Parameters
+
+| Param | Type | Description |
+|-------|------|-------------|
+| `url` | string | Target URL |
+| `fields` | table | Form fields (see below) |
+| `headers` | table? | Optional key-value header pairs |
+
+**Fields table:**
+
+Each value is either:
+- A **string** - sent as a text form field
+- A **table** - sent as a file attachment with:
+  - `content` (required) - file bytes (binary-safe Lua string)
+  - `filename` (optional) - server-side file name
+  - `type` (optional) - MIME type (e.g. `"image/png"`)
+
+## Returns
+
+Same as [http_get](/lua-globals/http_get).
+
+## Example
+
+```lua
+-- Text fields only
+local res, err = http_multipart("https://api.example.com/form", {
+    name = "SpyWeb",
+    version = "1.0"
+})
+if not res then
+    log("upload failed: " .. err.error)
+    return
+end
+
+-- File upload (screenshot)
+local page = cdp.launch({ headless = true }):attach()
+page:open("https://example.com")
+page:screenshot("page.png", { full_page = true })
+local image_data = fs_read_binary("page.png")
+local res, err = http_multipart("https://hooks.example.com/upload", {
+    screenshot = { content = image_data, filename = "page.png", type = "image/png" },
+    caption = "my screenshot"
+})
+if not res then
+    log("screenshot upload failed: " .. err.kind)
+    return
+end
+```
+
+## See Also
+
+- [http_get](/lua-globals/http_get) - HTTP GET request
+- [http_request](/lua-globals/http_request) - Arbitrary HTTP request with proxy support
+- [fs_read_binary](/lua-globals/fs_read_binary) - Read binary files

@@ -62,5 +62,5 @@ end
 
 ## See Also
 
-- [before_fetch](/hook-reference/before-fetch) — Modify the request before fetching
-- [override_fetch](/hook-reference/override-fetch) — Replace the entire fetch with custom logic
+- [before_fetch](/hook-reference/01-before-fetch) - Modify the request before fetching
+- [override_fetch](/hook-reference/02-override-fetch) - Replace the entire fetch with custom logic

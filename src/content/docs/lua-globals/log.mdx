@@ -1,0 +1,39 @@
+---
+title: log
+description: Appends a timestamped line to hooks.log.
+---
+
+import FunctionSignature from '../../../components/FunctionSignature.astro';
+
+`log(message)` appends a timestamped line to `hooks.log` in the job's directory (or `server.log` for API server context).
+
+## Signature
+
+<FunctionSignature name="log" params="message" async />
+
+:::note
+This is the recommended way to debug hooks without using external libraries. You can also use `print()` instead to see output directly in the terminal.
+:::
+
+
+## Parameters
+
+| Param | Type | Description |
+|-------|------|-------------|
+| `message` | string | The message to append |
+
+## Returns
+
+None.
+
+## Example
+
+```lua
+local items = extract_items(page)
+log("extracted " .. #items .. " items")
+```
+
+## See Also
+
+- [notify](/lua-globals/notify) - Send desktop notifications
+- [dump](/lua-globals/dump) - Format values for debugging

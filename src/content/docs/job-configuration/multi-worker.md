@@ -7,15 +7,19 @@ sidebar:
 
 Multi-worker mode lets a single job run multiple concurrent scraping cycles. Useful for monitoring many URLs with one job or load-testing a single endpoint.
 
-## When to Use Multi-Worker
+**When to Use Multi-Worker**
 
-- **Shared State Coordination** — All workers share the same Lua VM. Maintain in-memory caches, global rate-limiters, or IP rotation state without database roundtrips.
-- **Pipeline Consolidation** — Process many URLs with identical extraction logic in a single job.
-- **Parallel Queue Processing** — Large list of `urls` processed with maximum throughput.
-- **I/O Wait Mitigation** — Workers keep the engine productive during network handshakes.
-- **High-Frequency Monitoring** — Reduce time gap between checks for volatile data.
+All URLs in the queue **must follow the same pipeline and extraction logic**. This is the primary requirement. If your URLs need different selectors, fields, or hooks, use separate jobs instead. (Exception: if you define `override_extract`, you can handle different structures programmatically.)
+
+Good use cases:
+- **Pipeline Consolidation** - Many URLs with identical extraction logic (e.g., 100 product categories using the same selector and fields)
+- **Parallel Queue Processing** - Large list of `urls` processed with maximum throughput
+- **I/O Wait Mitigation** - Workers keep the engine productive during network handshakes
+- **High-Frequency Monitoring** - Reduce time gap between checks for volatile data
+- **Shared State Coordination** - All workers share the same Lua VM for in-memory caches, rate-limiters, or IP rotation
 
 **When NOT to use it:**
+- URLs require different selectors, fields, or hook logic (use separate jobs)
 - Anti-bot detection triggers on high concurrency from a single IP
 - Sequential execution order is required
 - Resource constraints on small VPS
@@ -30,7 +34,7 @@ A job picks one of three modes based on config:
 | Multi-worker single URL | `workers > 1`, no `urls` | Every worker independently scrapes the same URL |
 | Single worker | default (`workers = 1`, no `urls`) | One inline cycle, no task overhead |
 
-`urls` takes priority — if set, the job always uses URL queue mode. When `urls` is present, the `url` field is ignored.
+`urls` takes priority - if set, the job always uses URL queue mode. When `urls` is present, the `url` field is ignored.
 
 ## URL Queue Mode
 
@@ -70,9 +74,9 @@ end
 
 Each worker gets a unique `ctx.worker_id` (1-based integer):
 
-- In **URL queue mode** — IDs are persistent lanes; worker 1 always handles the first URL, worker 2 the second, etc.
-- In **single-URL multi-worker** — worker IDs are assigned at spawn; each worker gets one ID for its lifetime.
-- **Single worker** — always gets ID 1.
+- In **URL queue mode** - IDs are persistent across URLs the same worker pulls from the shared queue
+- In **single-URL multi-worker** - worker IDs are assigned at spawn; each worker gets one ID for its lifetime.
+- **Single worker** - always gets ID 1.
 
 Use `worker_id` to distribute work without collisions:
 
@@ -94,7 +98,7 @@ Worker 3: start +400ms
 Worker 4: start +600ms
 ```
 
-The stagger prevents socket exhaustion (`EADDRNOTAVAIL`), DNS burst failures, and rate-limit triggers. The stagger only affects the initial launch of workers within a single job iteration — after a worker finishes one URL and grabs the next from the queue, it runs again immediately with no re-staggering.
+The stagger prevents socket exhaustion (`EADDRNOTAVAIL`), DNS burst failures, and rate-limit triggers. The stagger only affects the initial launch of workers within a single job iteration - after a worker finishes one URL and grabs the next from the queue, it runs again immediately with no re-staggering.
 
 ## Job-Level Completion with `on_finished`
 
@@ -122,16 +126,16 @@ end
 
 ## Shared State Semantics
 
-- **`ctx.shared`** — Worker-cycle scoped, destroyed when worker finishes its URL
-- **`_G` (global)** — Batch-wide state, persists across all workers. Always clear in `on_finished()`. Do not use `_G` for per-worker state — race conditions can corrupt values across workers.
-- **Storage** — `store_set`/`store_get`/`global_store_*` go through a Lua mutex, safe from any worker
-- **Browser instances** — can be shared across workers via globals
+- **`ctx.shared`** - Worker-cycle scoped, destroyed when worker finishes its URL
+- **`_G` (global)** - Batch-wide state, persists across all workers. Always clear in `on_finished()`. Do not use `_G` for per-worker state - race conditions can corrupt values across workers.
+- **Storage** - `store_set`/`store_get`/`global_store_*` go through a Lua mutex, safe from any worker
+- **Browser instances** - can be shared across workers via globals
 
 ## Worker Fault Tolerance
 
 - Each worker runs in its own concurrent task
 - A fatal error in one worker does not affect others (poison-safe queue)
-- The queue does not crash if a worker panics — remaining workers continue processing
+- The queue does not crash if a worker panics - remaining workers continue processing
 - The job loop continues and still triggers `on_finished()`
 
 ## Concurrency Settings
@@ -141,7 +145,7 @@ end
 | `SPYWEB_THREADS` | Env Var | Process | Total OS threads available to the runtime |
 | `workers` | Config | Per-Job | Number of concurrent scraping workers |
 
-Set `SPYWEB_THREADS` to your CPU core count. A `workers` value higher than `SPYWEB_THREADS` causes contention — workers queue up waiting for a free thread. Tune `workers` against your target's rate limits.
+Set `SPYWEB_THREADS` to your CPU core count. A `workers` value higher than `SPYWEB_THREADS` causes contention - workers queue up waiting for a free thread. Tune `workers` against your target's rate limits.
 
 If `SPYWEB_THREADS` is not set, the app defaults to **2 threads**. Set it explicitly for production.
 
@@ -150,7 +154,7 @@ If `SPYWEB_THREADS` is not set, the app defaults to **2 threads**. Set it explic
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `workers` | integer | `1` | Number of concurrent scraping workers |
-| `urls` | array | — | URL queue; takes priority over `url` |
+| `urls` | array | - | URL queue; takes priority over `url` |
 
 ## Troubleshooting
 
@@ -189,10 +193,10 @@ end
 ```
 
 ```lua
-function after_fetch(response, ctx)
+function after_fetch(result, ctx)
     local task_id = ctx.shared.target_id
     if not task_id then return end
-    local status = ctx.telemetry.map.fetch.status == "success" and "completed" or "failed"
+    local final_status = result.ok and "completed" or "failed"
     db_exec("UPDATE targets SET last_hit = ? WHERE id = ?", { os.time(), task_id })
 end
 ```

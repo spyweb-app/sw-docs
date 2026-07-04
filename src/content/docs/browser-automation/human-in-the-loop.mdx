@@ -1,0 +1,66 @@
+---
+title: Human in the Loop
+description: Recovery flow for blocked scrapers with manual intervention.
+sidebar:
+  order: 7
+---
+
+For sites with aggressive bot detection (Cloudflare, CAPTCHAs), implement a hybrid recovery flow that switches from headless to visible browser when a block is detected.
+
+## The Strategy
+
+1. **Normal mode** - scrape headlessly for speed
+2. **Detection** - check for a block selector (e.g. `#captcha-container`) in `override_fetch`
+3. **Transition** - close the headless browser and launch a visible Chrome instance
+4. **Notification** - use `notify()` to alert a human operator
+5. **Intervention** - poll for a "success" selector that appears after the human solves the puzzle
+6. **Handback** - capture HTML, close the visual browser, return to headless mode
+
+:::note
+If you need session persistence (cookies/login), use **Chromium-based browsers for both steps** and share the same `user_data_dir`. Lightpanda and Chrome cannot share profiles.
+:::
+
+## Example
+
+See [Human in the Loop](/examples/human-in-the-loop) for a complete implementation.
+
+```lua
+-- Simplified flow
+function override_fetch(request, ctx)
+    local state = store_get("recovery_state") or "NORMAL"
+
+    -- Just recovered - capture data
+    if state == "SOLVED" then
+        local page = visual_browser:attach({ reuse = true })
+        local html = page:content()
+        visual_browser:close()
+        store_set("recovery_state", "NORMAL")
+        return { status = 200, body = html, url = request.url }
+    end
+
+    -- Normal headless run
+    local page = browser:attach()
+    defer(function() page:close() end)
+    page:open(request.url)
+
+    -- Check for data
+    local found = page:wait_for_selector(".data", 8000)
+    if found then
+        return { status = 200, body = page:content(), url = request.url }
+    end
+
+    -- Check for bot block
+    local blocked = page:evaluate("document.querySelector('#captcha') !== null")
+    if blocked then
+        -- Switch to visual browser
+        browser:close()
+        visual_browser = cdp.launch({ headless = false })
+        visual_browser:attach():open(request.url)
+        store_set("recovery_state", "RECOVERING")
+        notify("Blocked", "Please solve the CAPTCHA")
+        return nil
+    end
+
+    return { error = "Data not found" }
+end
+```

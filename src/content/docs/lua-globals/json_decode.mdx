@@ -1,0 +1,45 @@
+---
+title: json_decode
+description: Parses a JSON string into a native Lua table.
+---
+
+import FunctionSignature from '../../../components/FunctionSignature.astro';
+
+`json_decode(string)` parses a JSON string into a native Lua table. Returns `(value, nil)` on success, or `(nil, error_message)` on failure.
+
+## Signature
+
+<FunctionSignature name="json_decode" params="string"  />
+
+:::note
+Input must be under 10MB. Returns an error string if exceeded.
+:::
+
+
+## Parameters
+
+| Param | Type | Description |
+|-------|------|-------------|
+| `string` | string | The JSON string to parse |
+
+## Returns
+
+| Value | Type | Description |
+|-------|------|-------------|
+| 1st | any / nil | Parsed Lua value, or nil on malformed JSON |
+| 2nd | string / nil | Error message, or nil on success |
+
+## Example
+
+```lua
+local data, err = json_decode('{"status": "ok", "count": 42}')
+if not data then
+    log("decode failed: " .. err)
+    return
+end
+log("Status is: " .. data.status)
+```
+
+## See Also
+
+- [json_encode](/lua-globals/json_encode) - Convert Lua table to JSON string

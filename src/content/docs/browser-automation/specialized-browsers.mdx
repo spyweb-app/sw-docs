@@ -1,0 +1,63 @@
+---
+title: Specialized Browsers
+description: Lightweight alternatives to standard Chrome.
+sidebar:
+  order: 6
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+Standard Chromium-based browsers are the most compatible but resource-intensive. A single Chrome instance can consume hundreds of megabytes of RAM, and its profile directory often balloons to 150MB+ immediately.
+
+For a lighter approach, consider these specialized alternatives designed for scraping and automation.
+
+## <a href="https://github.com/lightpanda-io/browser" target="_blank">Lightpanda</a>
+
+A high-performance, lightweight browser written in Zig, designed for speed and low resource usage.
+
+:::note
+Lightpanda runs as a persistent server, so use `cdp.connect()` not `cdp.launch()`.
+:::
+
+<Tabs>
+  <TabItem label="Terminal">
+```bash
+lightpanda serve --port 9222
+```
+  </TabItem>
+  <TabItem label="hooks.lua">
+```lua
+local browser = cdp.connect("ws://127.0.0.1:9222")
+```
+  </TabItem>
+</Tabs>
+
+## <a href="https://github.com/h4ckf0r0day/obscura" target="_blank">Obscura</a>
+
+A headless browser specifically built for AI agents and advanced anti-detection.
+
+<Tabs>
+  <TabItem label="Terminal">
+```bash
+obscura serve --port 9222 --stealth
+```
+  </TabItem>
+  <TabItem label="hooks.lua">
+```lua
+local browser = cdp.connect("ws://127.0.0.1:9222/devtools/browser")
+```
+  </TabItem>
+</Tabs>
+
+## Compatibility
+
+These browsers implement CDP but may not support every method:
+
+| Method | Lightpanda | Obscura |
+|--------|-----------|---------|
+| `page:screenshot()` | Returns placeholder image | Not supported |
+| `page:block_resources()` | Not supported | Not supported |
+| `page:cookies()` (no args) | Works | Use `page:cookies({url})` instead |
+| `page:type(text, {real=true})` | Works | Not supported |
+
+Test your hooks thoroughly and fall back to a standard browser if something doesn't work.

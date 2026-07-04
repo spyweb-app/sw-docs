@@ -22,7 +22,7 @@ function before_notify(items, ctx) -> table | nil
 | Return | Effect |
 |--------|--------|
 | Array of items | Continue with notification |
-| `nil` | Silence desktop notification |
+| `nil` / `false` | Silence desktop notification |
 
 ## Example
 
@@ -42,5 +42,5 @@ end
 
 ## See Also
 
-- [before_webhook](/hook-reference/before-webhook) — Modify or silence webhook payloads
-- [before_store](/hook-reference/before-store) — Last chance before DB insert
+- [before_webhook](/hook-reference/09-before-webhook) - Modify or silence webhook payloads
+- [before_store](/hook-reference/07-before-store) - Last chance before DB insert

@@ -1,0 +1,134 @@
+---
+title: Security & Sandboxing
+description: How SpyWeb isolates Lua hooks from the host system.
+---
+
+import { FileTree } from '@astrojs/starlight/components';
+
+SpyWeb enforces multiple layers of security to prevent Lua hooks from accessing or modifying files outside their intended scope.
+
+## CWD Jailing
+
+All file operations are jailed to the current job's directory. Hooks cannot read, write, or execute files outside their job folder.
+
+<FileTree>
+- jobs/
+  - my-job/
+    - hooks.lua Can access: my-job/, shared/
+    - config.toml
+    - data.csv
+  - other-job/
+    - hooks.lua Cannot access: my-job/ files
+</FileTree>
+
+The `shared/` directory is the only cross-job escape hatch, and it requires an explicit `shared/` prefix.
+
+## Path Validation
+
+All paths are validated before any file operation. The following are rejected:
+
+| Attack Vector | Example | Result |
+|---------------|---------|--------|
+| Directory traversal | `../secret.txt` | Rejected |
+| Absolute path | `/etc/passwd` | Rejected |
+| Nested traversal | `data/../../etc/passwd` | Rejected |
+| Symlink escape | Symlink pointing outside sandbox | Rejected |
+
+## Absolute Path Rejection
+
+Every `fs_*` function rejects absolute paths:
+
+```lua
+fs_read("/etc/passwd")        -- Error: absolute paths not allowed
+fs_append("/tmp/data.csv", x) -- Error: absolute paths not allowed
+require("/etc/passwd")        -- Error: absolute paths not allowed
+```
+
+Use relative paths instead. The path resolves relative to your job's directory.
+
+## Extension Whitelisting
+
+File operations are restricted to safe extensions. Write operations use a stricter list than read operations.
+
+| Function | Allowed Extensions |
+|----------|-------------------|
+| `fs_append` | csv, json, jsonl, txt, log |
+| `fs_overwrite` | csv, json, jsonl, txt, log |
+| `fs_read` | csv, json, jsonl, txt, log |
+| `fs_read_binary` | csv, json, jsonl, txt, log, png, jpg, jpeg, gif, svg, webp, bmp, ico, woff, woff2, ttf, otf, pdf, zip |
+
+`fs_read_binary` has a wider allowlist to support images, fonts, PDFs, and archives.
+
+## Stripped Luau Libraries
+
+SpyWeb loads a minimal subset of Luau's standard library:
+
+| Library | Status | Alternative |
+|---------|--------|-------------|
+| `table` | Loaded | - |
+| `string` | Loaded | - |
+| `utf8` | Loaded | - |
+| `math` | Loaded | - |
+| `os` | Stripped | `os.time()`, `os.date()`, `os.clock()`, `os.difftime()` available |
+| `bit` | Loaded | - |
+| `coroutine` | Loaded | - |
+| `io` | **Disabled** | Use `fs_append`, `fs_read`, `fs_overwrite` |
+| `package` | **Disabled** | Custom `require` (see below) |
+| `debug` | **Disabled** | No alternative |
+| `loadlib` | **Disabled** | No alternative |
+
+## Custom `require`
+
+SpyWeb replaces Lua's standard `require` with a sandboxed version:
+
+- Searches job directory first, then project root
+- Caches modules after first load
+- Validates paths against traversal attacks
+- Dots in module names convert to path separators (`utils.helpers` → `utils/helpers.lua`)
+
+```lua
+-- This works: checks jobs/my-job/utils.lua, then ./utils.lua
+local utils = require("utils")
+
+-- This fails: absolute path rejected
+local bad = require("/etc/passwd")
+```
+
+## Environment Variables
+
+Environment variables are read-only and require the `SPYWEB_` prefix:
+
+```lua
+-- Host system
+export SPYWEB_API_KEY="secret-123"
+
+-- In Lua (prefix added automatically)
+local key = env_get("API_KEY")  -- Reads SPYWEB_API_KEY
+```
+
+Variables without the `SPYWEB_` prefix are inaccessible from Lua.
+
+## Shared Directory Scope
+
+The `shared/` directory is the only way to access files outside the job directory:
+
+```lua
+-- Write to shared folder (accessible by all jobs)
+fs_append("shared/log.txt", "data")
+
+-- Read from shared folder
+local config = fs_read("shared/config.json")
+
+-- Without shared/ prefix, writes go to job directory
+fs_append("local.csv", "data")  -- writes to jobs/my-job/local.csv
+```
+
+## API Server Authentication
+
+The built-in API server supports optional authentication via the `SPYWEB_API_KEY` environment variable:
+
+```bash
+export SPYWEB_API_KEY="your-secret-key"
+```
+
+When set, all API requests must include the key in the `X-SpyWeb-Key` header.

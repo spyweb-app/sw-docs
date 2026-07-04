@@ -1,21 +1,122 @@
 ---
 title: SpyWeb Documentation
-description: High-performance web monitoring engine powered by Lua hooks.
+description: High-performance web monitoring/scraping engine powered by Lua hooks.
 template: splash
 ---
 
-import { Card, CardGrid } from '@astrojs/starlight/components';
+import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
+
+<div class="custom-hero">
+  <div class="hero-logo-container">
+    <svg width="48" height="48" viewBox="130 130 420 420" class="hero-svg">
+      <g stroke="#e11d48" stroke-width="20" fill="none" stroke-linejoin="round" stroke-linecap="round">
+          <line x1="340" y1="340" x2="550" y2="340"/>
+          <line x1="340" y1="340" x2="489" y2="489"/>
+          <line x1="340" y1="340" x2="340" y2="550"/>
+          <line x1="340" y1="340" x2="191" y2="489"/>
+          <line x1="340" y1="340" x2="130" y2="340"/>
+          <line x1="340" y1="340" x2="191" y2="191"/>
+          <line x1="340" y1="340" x2="340" y2="130"/>
+          <line x1="340" y1="340" x2="489" y2="191"/>
+          <path d="M 450,340 Q 420,365 418,418 Q 365,420 340,450 Q 315,420 262,418 Q 260,365 230,340 Q 260,315 262,262 Q 315,260 340,230 Q 365,260 418,262 Q 420,315 450,340"/>
+          <path d="M 538,340 Q 472,395 480,480 Q 395,472 340,538 Q 285,472 200,480 Q 208,395 142,340 Q 208,285 200,200 Q 285,208 340,142 Q 395,208 480,200 Q 472,285 538,340"/>
+      </g>
+    </svg>
+    <h1 class="hero-title">Spy<span class="hero-title-highlight">Web</span></h1>
+  </div>
+  
+  <p class="hero-subtitle">
+    Zero-dependency web monitoring/scraping engine. Scrape, track, and get notified. ~7MB binary, no runtime, under 5MB idle RAM.
+  </p>
+
+  <div class="hero-actions">
+    <a href="/getting-started" class="btn btn-primary">
+      Get Started
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+    </a>
+    <a href="https://github.com/spyweb-app/spyweb" class="btn btn-secondary" target="_blank">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+      GitHub
+    </a>
+  </div>
+</div>
+
+<div class="sl-markdown-content">
+
+## Features
+
+<CardGrid stagger>
+	<Card title="Zero Dependencies" icon="open-book">
+		~7MB self-contained binary. Completely portable, no runtime required.
+	</Card>
+	<Card title="Lua Scripting" icon="pencil">
+		10 hook stages plus persistent storage for counters, cursors, and shared state.
+	</Card>
+	<Card title="Hot Reload" icon="random">
+		Save a config or Lua script and SpyWeb respawns the job instantly.
+	</Card>
+	<Card title="Browser Automation" icon="laptop">
+		Built-in CDP support for Chrome, Edge, or Brave. Scrape JS-rendered pages.
+	</Card>
+	<Card title="Multi-Worker" icon="rocket">
+		Per-job concurrency with URL queue mode and shared Lua state.
+	</Card>
+	<Card title="Dual Binary" icon="setting">
+		Choice of headless CLI or silent system tray for background runs.
+	</Card>
+</CardGrid>
+
+## Quick Start
+
+<Tabs>
+  <TabItem label="config.toml">
+```toml
+name = "HN Front Page"
+url = "https://news.ycombinator.com"
+selector = ".athing"
+fields = ["title:.titleline > a", "link:.titleline > a@href"]
+keywords = ["rust", "linux", "open source"]
+```
+  </TabItem>
+  <TabItem label="hooks.lua">
+```lua
+function before_fetch(request, ctx)
+    print("Fetching: " .. request.url)
+    return request
+end
+```
+  </TabItem>
+  <TabItem label="defer.lua">
+```lua
+function on_finally(ctx)
+    print("Cycle finished")
+end
+```
+  </TabItem>
+</Tabs>
+
+```bash
+spyweb start
+```
+
+See [Job Configuration](/job-configuration/toml-config) for all options, or [Get Started](/getting-started) for download commands.
+
+</div>
 
 <style>
 {`
-  /* Restrict markdown content width for readability */
-  .sl-markdown-content {
-    max-width: 1000px;
-    margin: 0 auto;
-    padding: 2rem;
+  .hero-actions a > svg, .hero-actions a > p {
+    margin-top: 0
   }
-  
-  /* Hero Section - Full Viewport Width trick */
+  main .content-panel:first-of-type {
+    height: 0;
+    overflow: hidden;
+    opacity: 0;
+    padding: 0
+  }
+  main .content-panel {
+    padding-top: 0
+  }
   .custom-hero {
     width: 100vw;
     position: relative;
@@ -23,11 +124,11 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
     right: 50%;
     margin-left: -50vw;
     margin-right: -50vw;
-    padding: 4rem 2rem;
+    padding: 3rem 2rem;
     text-align: center;
     background: radial-gradient(circle at center, rgba(225, 29, 72, 0.1) 0%, transparent 50%);
     border-bottom: 1px solid var(--sl-color-gray-5);
-    margin-bottom: 3rem;
+    margin-bottom: 2rem;
   }
   .hero-logo-container {
     display: flex;
@@ -35,13 +136,12 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
     justify-content: center;
     gap: 16px;
     margin-bottom: 1rem;
-    animation: fade-in-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
   .hero-svg {
     filter: drop-shadow(0 0 10px rgba(225, 29, 72, 0.4));
   }
   .hero-title {
-    font-size: clamp(3rem, 6vw, 4.5rem);
+    font-size: clamp(2rem, 4vw, 3rem);
     font-weight: 800;
     margin: 0;
     color: var(--sl-color-white);
@@ -55,64 +155,30 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
     -webkit-text-fill-color: transparent;
     font-weight: 900;
   }
-  
   .hero-subtitle {
-    font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+    font-size: clamp(0.95rem, 2vw, 1.1rem);
     color: var(--sl-color-gray-2);
-    max-width: 650px;
+    max-width: 550px;
     margin: 0 auto;
     line-height: 1.5;
-    animation: fade-in-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.1s forwards;
-    opacity: 0;
   }
-
-  /* Tags */
-  .hero-tags {
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-    margin-top: 1.5rem;
-    flex-wrap: wrap;
-    animation: fade-in-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
-    opacity: 0;
-  }
-  .hero-tag {
-    padding: 6px 16px;
-    border-radius: 999px;
-    font-size: 0.8rem;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    background: var(--sl-color-gray-6);
-    backdrop-filter: blur(8px);
-    transition: all 0.2s ease;
-    cursor: default;
-  }
-  .hero-tag:hover {
-    transform: translateY(-2px);
-  }
-  .tag-info { box-shadow: 0 0 15px rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
-  .tag-success { box-shadow: 0 0 15px rgba(52, 211, 153, 0.15); color: #34d399; border: 1px solid rgba(52, 211, 153, 0.3); }
-  .tag-warning { box-shadow: 0 0 15px rgba(251, 191, 36, 0.15); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.3); }
-  
-  /* Buttons */
   .hero-actions {
     display: flex;
     gap: 16px;
     justify-content: center;
-    margin-top: 2.5rem;
-    animation: fade-in-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards;
-    opacity: 0;
+    margin-top: 2rem;
+    flex-wrap: wrap;
   }
   .btn {
-    padding: 12px 28px;
-    border-radius: 8px;
+    padding: 8px 20px;
+    border-radius: 6px;
     font-weight: 600;
+    font-size: 0.9rem;
     text-decoration: none !important;
     transition: all 0.2s ease;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
   }
   .btn-primary {
     background: linear-gradient(135deg, #e11d48, #be123c);
@@ -133,293 +199,5 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
     background: var(--sl-color-gray-5);
     border-color: var(--sl-color-gray-3);
   }
-
-  /* Pipeline Diagram */
-  .pipeline-container {
-    margin: 4rem 0;
-    background: var(--sl-color-black);
-    border-radius: 12px;
-    border: 1px solid var(--sl-color-gray-5);
-    padding: 2rem;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-  }
-  .pipeline-header {
-    text-align: center;
-    margin-bottom: 2rem;
-  }
-  .pipeline-header h2 {
-    margin: 0 !important;
-    font-size: 2rem !important;
-    border: none !important;
-  }
-  .pipeline-header p {
-    color: var(--sl-color-gray-3);
-    margin-top: 0.5rem;
-  }
-  .pipeline-flow {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    max-width: 600px;
-    margin: 0 auto;
-  }
-  .pipeline-stage {
-    background: var(--sl-color-gray-6);
-    border: 1px solid var(--sl-color-gray-5);
-    border-radius: 8px;
-    padding: 12px 16px;
-    transition: all 0.2s ease;
-    position: relative;
-    z-index: 1;
-  }
-  .pipeline-stage:hover {
-    transform: translateX(8px);
-    border-color: var(--sl-color-gray-3);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  }
-  .stage-executor {
-    border-left: 4px solid #e11d48;
-  }
-  .stage-executor .stage-name {
-    color: #fda4af;
-  }
-  .stage-executor .stage-thread {
-    color: #e11d48;
-  }
-  .stage-background {
-    border-left: 4px solid #38bdf8;
-    background: rgba(56, 189, 248, 0.05);
-  }
-  .stage-background .stage-name {
-    color: #7dd3fc;
-  }
-  .stage-background .stage-thread {
-    color: #38bdf8;
-  }
-  .stage-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 4px;
-  }
-  .stage-name {
-    font-family: var(--sl-font-mono);
-    font-weight: 600;
-    font-size: 0.95rem;
-  }
-  .stage-thread {
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    font-weight: 800;
-    letter-spacing: 0.5px;
-  }
-  .stage-desc {
-    margin: 0 !important;
-    font-size: 0.85rem;
-    color: var(--sl-color-gray-2);
-    line-height: 1.4;
-  }
-
-  /* Utilities */
-  @keyframes fade-in-up {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
 `}
 </style>
-
-<div class="custom-hero">
-  <div class="hero-logo-container">
-    <svg width="60" height="60" viewBox="130 130 420 420" class="hero-svg">
-      <g stroke="#e11d48" stroke-width="20" fill="none" stroke-linejoin="round" stroke-linecap="round">
-          <line x1="340" y1="340" x2="550" y2="340"/>
-          <line x1="340" y1="340" x2="489" y2="489"/>
-          <line x1="340" y1="340" x2="340" y2="550"/>
-          <line x1="340" y1="340" x2="191" y2="489"/>
-          <line x1="340" y1="340" x2="130" y2="340"/>
-          <line x1="340" y1="340" x2="191" y2="191"/>
-          <line x1="340" y1="340" x2="340" y2="130"/>
-          <line x1="340" y1="340" x2="489" y2="191"/>
-          <path d="M 450,340 Q 420,365 418,418 Q 365,420 340,450 Q 315,420 262,418 Q 260,365 230,340 Q 260,315 262,262 Q 315,260 340,230 Q 365,260 418,262 Q 420,315 450,340"/>
-          <path d="M 538,340 Q 472,395 480,480 Q 395,472 340,538 Q 285,472 200,480 Q 208,395 142,340 Q 208,285 200,200 Q 285,208 340,142 Q 395,208 480,200 Q 472,285 538,340"/>
-      </g>
-    </svg>
-    <h1 class="hero-title">Spy<span class="hero-title-highlight">Web</span></h1>
-  </div>
-  
-  <p class="hero-subtitle">
-    High-performance web monitoring with zero dependencies. Customize every stage of the pipeline with Lua scripts, scrape data, and get notified — all from a single binary.
-  </p>
-
-  <div class="hero-tags">
-    <span class="hero-tag tag-info">9 Hook Stages</span>
-    <span class="hero-tag tag-success">Hot Reload</span>
-    <span class="hero-tag tag-warning">Error Resilient</span>
-  </div>
-
-  <div class="hero-actions">
-    <a href="/cli-and-operations/" class="btn btn-primary">
-      Get Started
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-    </a>
-    <a href="https://github.com/anomalyco/spyweb" class="btn btn-secondary" target="_blank">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
-      GitHub
-    </a>
-  </div>
-</div>
-
-<div class="sl-markdown-content">
-
-## Why SpyWeb?
-
-<CardGrid stagger>
-	<Card title="Lua-Powered Hooks" icon="pencil">
-		Customize every pipeline stage — from request headers to notification payloads — with simple Lua functions. Only define the hooks you need.
-	</Card>
-	<Card title="Browser Automation" icon="laptop">
-		Built-in CDP support auto-detects Chrome, Edge, or Brave on your system. Scrape JavaScript-rendered pages with `cdp.launch()`.
-	</Card>
-	<Card title="Multi-Worker Concurrency" icon="rocket">
-		Run multiple workers per job to process URL queues in parallel. Workers share state through a single Lua VM.
-	</Card>
-	<Card title="Programmable API Server" icon="setting">
-		Define custom HTTP endpoints in `server/init.lua`. Build dashboards, webhooks, or proxy APIs with full access to your scraped data.
-	</Card>
-	<Card title="Built-in Testing" icon="approve-check-circle">
-		Write `test_*` functions alongside your hooks. Each test runs in an isolated Lua VM with full access to production bindings.
-	</Card>
-	<Card title="Flexible Storage" icon="document">
-		Choose between a zero-config key-value store (redb) or full SQLite with custom tables, JOINs, and external tool access.
-	</Card>
-</CardGrid>
-
-<div class="pipeline-container">
-  <div class="pipeline-header">
-    <h2>The Execution Pipeline</h2>
-    <p>Every scrape run flows through these stages in order. Hook where you need to.</p>
-  </div>
-  
-  <div class="pipeline-flow">
-    <div class="pipeline-stage stage-executor">
-      <div class="stage-header">
-        <span class="stage-name">before_fetch(request, ctx)</span>
-        <span class="stage-thread">Executor Thread</span>
-      </div>
-      <p class="stage-desc">Modify URL, add headers, or return nil to skip this run entirely.</p>
-    </div>
-    
-    <div class="pipeline-stage stage-executor">
-      <div class="stage-header">
-        <span class="stage-name">override_fetch(request, ctx)</span>
-        <span class="stage-thread">Executor Thread</span>
-      </div>
-      <p class="stage-desc">Custom fetching phase (bypasses built-in HTTP client if defined).</p>
-    </div>
-    
-    <div class="pipeline-stage stage-background">
-      <div class="stage-header">
-        <span class="stage-name">[HTTP Fetch]</span>
-        <span class="stage-thread">Background Thread</span>
-      </div>
-      <p class="stage-desc">Automatic — uses request config from previous stage.</p>
-    </div>
-    
-    <div class="pipeline-stage stage-executor">
-      <div class="stage-header">
-        <span class="stage-name">after_fetch(fetch_result, ctx)</span>
-        <span class="stage-thread">Executor Thread</span>
-      </div>
-      <p class="stage-desc">Inspect success/failure, mutate body, or return a synthetic response.</p>
-    </div>
-    
-    <div class="pipeline-stage stage-executor">
-      <div class="stage-header">
-        <span class="stage-name">override_extract(response, ctx)</span>
-        <span class="stage-thread">Executor Thread</span>
-      </div>
-      <p class="stage-desc">Custom extraction phase for JSON/XML (bypasses built-in CSS).</p>
-    </div>
-
-    <div class="pipeline-stage stage-background">
-      <div class="stage-header">
-        <span class="stage-name">[CSS Extraction]</span>
-        <span class="stage-thread">Background Thread</span>
-      </div>
-      <p class="stage-desc">Automatic — raw parser with DOM fallback.</p>
-    </div>
-
-    <div class="pipeline-stage stage-executor">
-      <div class="stage-header">
-        <span class="stage-name">after_extract(items, ctx)</span>
-        <span class="stage-thread">Executor Thread</span>
-      </div>
-      <p class="stage-desc">Batch filter or modify all items before processing.</p>
-    </div>
-
-    <div class="pipeline-stage stage-executor">
-      <div class="stage-header">
-        <span class="stage-name">filter_item(item, ctx)</span>
-        <span class="stage-thread">Executor Thread</span>
-      </div>
-      <p class="stage-desc">Per-item filter. Replaces built-in keyword filter if defined.</p>
-    </div>
-
-    <div class="pipeline-stage stage-executor">
-      <div class="stage-header">
-        <span class="stage-name">before_store(items, ctx)</span>
-        <span class="stage-thread">Executor Thread</span>
-      </div>
-      <p class="stage-desc">Last chance before DB insert. Return nil to skip store + notify.</p>
-    </div>
-
-    <div class="pipeline-stage stage-background">
-      <div class="stage-header">
-        <span class="stage-name">[Dedup + Insert]</span>
-        <span class="stage-thread">Background Thread</span>
-      </div>
-      <p class="stage-desc">Automatic — atomic check-and-insert into embedded database.</p>
-    </div>
-
-    <div class="pipeline-stage stage-executor">
-      <div class="stage-header">
-        <span class="stage-name">before_notify / before_webhook</span>
-        <span class="stage-thread">Executor Thread</span>
-      </div>
-      <p class="stage-desc">Reshape or silence notifications and webhooks.</p>
-    </div>
-
-    <div class="pipeline-stage stage-background">
-      <div class="stage-header">
-        <span class="stage-name">[Notify + Webhook]</span>
-        <span class="stage-thread">Background Thread</span>
-      </div>
-      <p class="stage-desc">Automatic — desktop notification + webhook POST.</p>
-    </div>
-  </div>
-</div>
-
-## Quick Start
-
-```bash
-# Install
-curl -fsSL https://spyweb.app/install.sh | bash
-
-# Create a job
-mkdir -p jobs/my-job
-```
-
-Create `jobs/my-job/config.toml`:
-
-```toml
-name = "Example Monitor"
-url = "https://example.com"
-selector = ".item"
-fields = ["title:h2", "link:a@href"]
-```
-
-```bash
-spyweb start
-```
-
-</div>

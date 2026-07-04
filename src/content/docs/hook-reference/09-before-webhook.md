@@ -24,7 +24,7 @@ function before_webhook(payload, ctx) -> table | nil
 | Return | Effect |
 |--------|--------|
 | Modified payload | Continue with webhook |
-| `nil` | Silence webhook |
+| `nil` / `false` | Silence webhook |
 
 ## Example
 
@@ -72,4 +72,4 @@ end
 
 ## See Also
 
-- [before_notify](/hook-reference/before-notify) — Modify items before notification
+- [before_notify](/hook-reference/08-before-notify) - Modify items before notification

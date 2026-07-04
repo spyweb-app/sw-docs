@@ -1,0 +1,71 @@
+---
+title: Custom Filtering
+description: Replace built-in keyword filter with Lua logic.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+When `filter_item()` exists in your hook, the built-in keyword filter is skipped entirely. This gives you full control over which items make it to the database.
+
+<Tabs>
+  <TabItem label="config.toml">
+```toml
+name = "Custom Filter Example"
+url = "https://example-jobs.com/listings"
+selector = ".job-card"
+interval = 60
+
+fields = [
+  "title:h3.job-title",
+  "company:.company-name",
+  "salary:.salary-range",
+  "link:a.apply-link@href",
+]
+```
+  </TabItem>
+  <TabItem label="hooks.lua">
+```lua
+blocked_companies = {
+    ["spam corp"] = true,
+    ["scam inc"] = true,
+}
+
+function filter_item(item)
+    local title = (item.fields.title or ""):lower()
+    local company = (item.fields.company or ""):lower()
+
+    if blocked_companies[company] then return nil end
+    if string.find(title, "intern") then return nil end
+
+    local wanted = {"rust", "go", "python", "kubernetes"}
+    local found = false
+    for _, tech in ipairs(wanted) do
+        if string.find(title, tech) then
+            found = true
+            break
+        end
+    end
+    if not found then return nil end
+
+    local min_sal = tonumber(string.match(item.fields.salary or "", "%d+"))
+    if min_sal then
+        item.fields.salary = "$" .. min_sal .. "k+"
+    end
+
+    return item
+end
+
+function before_notify(items)
+    if #items < 2 then return nil end
+    return items
+end
+```
+  </TabItem>
+</Tabs>
+
+## Key Concepts
+
+- `filter_item` is **mutually exclusive** with `keywords` in config
+- Return `nil` to drop, return the item to keep
+- You can mutate fields before storage
+- `before_notify` can silence notifications based on item count

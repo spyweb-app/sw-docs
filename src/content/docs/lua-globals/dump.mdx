@@ -1,0 +1,51 @@
+---
+title: dump
+description: Formats any Lua value into a readable string for debugging.
+---
+
+import FunctionSignature from '../../../components/FunctionSignature.astro';
+
+`dump(value)` formats any Lua value into a readable string. Handles nested tables, quotes strings, and marks circular references as `<cycle>` instead of recursing forever.
+
+## Signature
+
+<FunctionSignature name="dump" params="value"  />
+
+:::note
+Especially useful for inspecting `fetch_result` or `ctx.last_fetch`.
+:::
+
+
+## Parameters
+
+| Param | Type | Description |
+|-------|------|-------------|
+| `value` | any | The Lua value to format |
+
+## Returns
+
+| Value | Type | Description |
+|-------|------|-------------|
+| formatted | string | Human-readable representation of the value |
+
+## Example
+
+```lua
+function after_fetch(fetch_result, ctx)
+    -- deep_copy to avoid mutating the original fetch_result
+    local result = deep_copy(fetch_result)
+
+    if result.response then
+        -- strip the response body so dump doesn't flood the log with HTML
+        result.response.body = "-- stripped --"
+    end
+    print(dump(result)) -- logs to terminal
+    log(dump(result)) -- logs to hooks.log file
+    return fetch_result
+end
+```
+
+## See Also
+
+- [log](/lua-globals/log) - Append to hooks.log file
+- [json_encode](/lua-globals/json_encode) - Convert to JSON string

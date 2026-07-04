@@ -5,9 +5,12 @@ description: Executes INSERT, UPDATE, DELETE, or DDL statements on the SQLite da
 
 import FunctionSignature from '../../../components/FunctionSignature.astro';
 
+Executes INSERT, UPDATE, DELETE, or DDL statements on the SQLite database. Returns the number of rows affected. For DDL statements (CREATE TABLE, etc.), the affected row count is `0`.
+
+## Signature
+
 <FunctionSignature name="db_exec" params="sql, [params]" async />
 
-Executes INSERT, UPDATE, DELETE, or DDL statements on the SQLite database. Returns the number of rows affected. For DDL statements (CREATE TABLE, etc.), the affected row count is `0`.
 
 :::note
 Available only on the **SQL (SQLite)** build variant. On the **KV (redb)** variant, calling this function returns a clear error directing you to download the SQLite build. Throws a Lua error on SQL failure, use `pcall` to handle gracefully.
@@ -37,4 +40,4 @@ log("inserted " .. affected .. " row(s)")
 
 ## See Also
 
-- [db_query](/lua-globals/db-query) — Execute SELECT queries
+- [db_query](/lua-globals/db_query) - Execute SELECT queries

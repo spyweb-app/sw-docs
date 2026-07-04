@@ -1,0 +1,123 @@
+---
+title: File Structure
+description: How SpyWeb organizes configs, hooks, and data on disk.
+---
+
+import { FileTree } from '@astrojs/starlight/components';
+
+SpyWeb expects this directory layout for complete setup:
+
+<FileTree>
+- examples/ Sample configs
+- docs/ Offline documentation
+- jobs/ Per-job folders (advanced setups)
+- server/ Custom API server Lua scripts
+- shared/ Cross-job/server shared files 
+- ui/ Web dashboard files
+- data Embedded database (created on first run)
+- jobs.toml Single-file config (simple setups)
+- spyweb Terminal executable
+- spyweb-tray Tray executable (desktop)
+</FileTree>
+
+## Two Ways to Configure Jobs
+
+### Single File (`jobs.toml`)
+
+All jobs in one file. Good for simple setups with few jobs.
+
+```toml
+[[jobs]]
+name = "Job One"
+url = "https://example.com"
+selector = ".item"
+fields = ["title:h2"]
+
+[[jobs]]
+name = "Job Two"
+url = "https://other.com"
+selector = ".post"
+fields = ["name:h3"]
+```
+
+### Per-Job Folders (`jobs/`)
+
+Each job gets its own directory. Required when using Lua hooks or complex configs.
+
+<FileTree>
+- jobs/
+  - my-monitor/
+    - config.toml Job configuration (required)
+    - hooks.lua Lua hooks (optional)
+    - defer.lua Lifecycle hooks (optional)
+    - tests.lua Lua tests (optional)
+    - data.csv Job-specific data files
+  - another-job/
+    - config.toml
+    - hooks.lua
+</FileTree>
+
+:::note
+`jobs.toml` and `jobs/` folder can coexist. Jobs in both are loaded.
+:::
+
+## Shared Directory (`shared/`)
+
+Files in `shared/` are accessible from any job via `fs_read("shared/file.txt")` or `fs_overwrite("shared/file.txt", ...)`. Use this for:
+
+- Config files loaded by multiple jobs
+- Shared data or caches
+- Assets used across jobs
+
+<FileTree>
+- shared/
+  - api-keys.json
+  - proxy-list.txt
+  - templates/
+</FileTree>
+
+:::note
+Write to `shared/` from any job using the `shared/` prefix: `fs_append("shared/log.txt", "data")`.
+:::
+
+## Server Directory (`server/`)
+
+For the programmable API server. Define custom HTTP endpoints here.
+
+<FileTree>
+- server/
+  - init.lua Server entry point
+</FileTree>
+
+See [API Server](/api-and-server) for details.
+
+## Data Files
+
+SpyWeb creates and manages these automatically:
+
+| File | Description |
+|------|-------------|
+| `data` | Embedded database (redb or SQLite) |
+| `hooks.log` | Per-job log file (in job directory) |
+| `error.log` | API server errors (in `server/` directory) |
+| `*-response.html` | Raw HTML from `debug` command |
+| `*-fields.json` | Extracted fields from `debug` command |
+
+## Lua File Lookup
+
+When you `require("utils")`, SpyWeb searches:
+
+1. Current job's directory first
+2. Project root as fallback
+
+```lua
+-- In jobs/my-job/hooks.lua
+local utils = require("utils")  -- checks jobs/my-job/utils.lua, then ./utils.lua
+```
+
+## Log Files
+
+| Context | File | Location |
+|---------|------|----------|
+| Job hooks | `hooks.log` | Job directory |
+| API server | `error.log` | `server/` directory |

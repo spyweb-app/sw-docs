@@ -8,15 +8,17 @@ export interface Props {
 const { name, params, async: isAsync = false } = Astro.props;
 ---
 
-<div class="fn-sig">
-  <span class="fn-name">{name}</span>
-  <span class="fn-paren">(</span><span class="fn-param">{params}</span><span class="fn-paren">)</span>
+<div class="fn-sig-wrap mb-3">
+  <div class="fn-sig">
+    <span class="fn-name">{name}</span>
+    <span class="fn-paren">(</span><span class="fn-param">{params}</span><span class="fn-paren">)</span>
+  </div>
+  <span class:list={['fn-badge', { 'fn-badge-async': isAsync }]}>{isAsync ? 'async' : 'sync'}</span>
 </div>
-<span class:list={['fn-badge', { 'fn-badge-async': isAsync }]}>{isAsync ? 'async' : 'sync'}</span>
 
 <style lang="scss">
 .fn-sig {
-  @apply inline-flex items-center gap-3 px-4 py-2 rounded-lg text-[0.9em];
+  @apply inline-flex items-center px-4 py-2 rounded-lg text-[0.9em];
   background: var(--sl-color-gray-6);
   border: 1px solid var(--sl-color-gray-5);
   font-family: var(--__sl-font-mono);
@@ -36,7 +38,7 @@ const { name, params, async: isAsync = false } = Astro.props;
 }
 
 .fn-badge {
-  @apply text-[0.7em] rounded px-2 py-[0.15em] ml-2 font-mono text-white;
+  @apply text-[0.7em] rounded px-2 py-[0.15em] ml-2 font-mono text-white mb-4;
   background: var(--sl-color-gray-5);
 }
 

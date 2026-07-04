@@ -1,0 +1,67 @@
+---
+title: External API Integration
+description: Skip internal DB, send items directly to your API.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+Bypass SpyWeb's internal database entirely and send extracted items directly to your own API or external database.
+
+<Tabs>
+  <TabItem label="config.toml">
+```toml
+name = "External API"
+url = "https://news.ycombinator.com"
+selector = ".athing"
+fields = [
+  "title:.titleline > a",
+  "link:.titleline > a@href"
+]
+interval = 300
+```
+  </TabItem>
+  <TabItem label="hooks.lua">
+```lua
+function before_store(items, ctx)
+    if #items == 0 then return nil end
+
+    ctx.shared.external_items = items
+
+    -- Return nil to skip internal DB and notifications
+    return nil
+end
+```
+  </TabItem>
+  <TabItem label="defer.lua">
+```lua
+function on_success(ctx)
+    if not ctx.shared.external_items then return end
+
+    local payload = json_encode({
+        source = "spyweb",
+        items = ctx.shared.external_items,
+        timestamp = os.time()
+    })
+
+    local res, err = http_post(
+        "https://your-api.com/ingest",
+        payload,
+        { ["Content-Type"] = "application/json" }
+    )
+
+    if not res then
+        log("API push failed: " .. (err.error or "unknown"))
+    else
+        log("Pushed " .. #ctx.shared.external_items .. " items to API")
+    end
+end
+```
+  </TabItem>
+</Tabs>
+
+## Key Concepts
+
+- `before_store` returning `nil` skips internal DB, dedup, and notifications
+- `ctx.shared` passes data between hooks in the same cycle
+- `on_success` runs after the cycle completes, good for external API calls
+- `defer.lua` keeps lifecycle hooks separate from pipeline hooks

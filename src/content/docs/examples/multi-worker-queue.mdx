@@ -1,0 +1,79 @@
+---
+title: Multi-Worker Queue
+description: DB-driven URL queue with atomic worker coordination.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+Use SQLite to coordinate which URL each worker fetches next, avoiding duplicate work across workers.
+
+<Tabs>
+  <TabItem label="config.toml">
+```toml
+name = "Multi-Worker Queue"
+workers = 4
+url = "https://example.com"
+selector = "body"
+fields = ["dummy:body"]
+interval = 60
+```
+  </TabItem>
+  <TabItem label="hooks.lua">
+```lua
+db_exec([[
+    CREATE TABLE IF NOT EXISTS targets (
+        id          TEXT PRIMARY KEY,
+        url         TEXT NOT NULL,
+        interval_sec INTEGER DEFAULT 60,
+        last_hit    INTEGER DEFAULT 0,
+        last_status TEXT DEFAULT ''
+    )
+]])
+
+db_exec("INSERT OR IGNORE INTO targets (id, url, interval_sec) VALUES (?, ?, ?)",
+        { "example",    "https://example.com",         10 })
+db_exec("INSERT OR IGNORE INTO targets (id, url, interval_sec) VALUES (?, ?, ?)",
+        { "google",     "https://www.google.com",      30 })
+db_exec("INSERT OR IGNORE INTO targets (id, url, interval_sec) VALUES (?, ?, ?)",
+        { "github",     "https://www.github.com",      60 })
+
+function before_fetch(request, ctx)
+    local now = os.time()
+
+    local rows = db_query([[
+        UPDATE targets
+        SET last_hit = ?
+        WHERE id = (
+            SELECT id FROM targets
+            WHERE (? - last_hit) >= interval_sec
+            LIMIT 1
+        )
+        RETURNING id, url
+    ]], { now, now })
+
+    if #rows == 0 then return nil end
+
+    request.url = rows[1].url
+    ctx.shared.target_id = rows[1].id
+    return request
+end
+
+function after_fetch(fetch_result, ctx)
+    local id = ctx.shared.target_id
+    if id == nil then return nil end
+
+    local status = fetch_result.ok and "ok" or "error"
+    db_exec("UPDATE targets SET last_status = ? WHERE id = ?", { status, id })
+
+    return nil
+end
+```
+  </TabItem>
+</Tabs>
+
+## Key Concepts
+
+- `UPDATE ... RETURNING` atomically claims a target, so no two workers collide
+- `ctx.shared` passes the target ID between hooks in the same cycle
+- `workers > 1` in config enables multi-worker mode
+- Each worker runs independently, claiming targets from the shared queue

@@ -1,0 +1,25 @@
+---
+title: Overview
+description: What is CDP and how it works in SpyWeb.
+sidebar:
+  order: 1
+---
+
+SpyWeb does not bundle a browser. The `cdp` module automatically detects a Chromium-based browser (Chrome, Edge, Brave) already installed on your system and controls it via the Chrome DevTools Protocol.
+
+If you need JS rendering in a hook (to scrape a React site, bypass a Cloudflare challenge, click buttons, or wait for DOM elements), you use the `cdp` module.
+
+## How It Works
+
+SpyWeb can get a browser two ways:
+
+1. **Launch one** - `cdp.launch()` finds a browser, starts it in headless mode, and connects automatically
+2. **Connect to existing** - `cdp.connect("ws://...")` attaches to a running browser or CDP server
+
+Once connected, call `browser:attach()` to get a page, then drive it with `page:open()`, `page:wait_for_selector()`, `page:click()`, and `page:content()`.
+
+## Under the Hood
+
+When you call `cdp.launch()`, SpyWeb spawns the browser as a child process with `--remote-debugging-port=0` (random free port). It reads the DevTools WebSocket URL from stderr, connects, and returns a `Browser` object. Every command and response is sent as JSON-RPC messages over WebSocket, the same protocol Chrome's DevTools uses.
+
+Each page gets its own dedicated WebSocket connection. `browser:attach()` opens a new WebSocket to the page's specific endpoint. By default, closing the browser kills the process and cleans up the profile. `keep_alive = true` overrides this, keeping the browser warm across hook calls.

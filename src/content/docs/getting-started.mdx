@@ -1,0 +1,100 @@
+---
+title: Getting Started
+description: How to start and run SpyWeb on Linux, macOS, or Windows.
+---
+
+import { Tabs, TabItem, FileTree } from '@astrojs/starlight/components';
+
+Download the latest archive from the <a href="https://github.com/spyweb-app/spyweb/releases/tag/latest" target="_blank">Release Page</a> and extract it. Two variants are available: **KV** (redb, default) and **SQL** (SQLite, queryable). 
+
+## Download via CLI
+To get the SQL version, append `-sql` to the download URL.
+<Tabs>
+  <TabItem label="Linux">
+```bash
+curl -L -o spyweb.tar.gz https://beta.spyweb.app/linux && tar -xf spyweb.tar.gz && rm spyweb.tar.gz
+```
+  </TabItem>
+  <TabItem label="Mac (intel)">
+```bash
+curl -L -o spyweb.tar.gz https://beta.spyweb.app/mac-intel && tar -xf spyweb.tar.gz && rm spyweb.tar.gz
+```
+  </TabItem>
+  <TabItem label="Mac (arm)">
+```bash
+curl -L -o spyweb.tar.gz https://beta.spyweb.app/mac-arm && tar -xf spyweb.tar.gz && rm spyweb.tar.gz
+```
+  </TabItem>
+  <TabItem label="Windows (CMD)">
+```bash
+curl -L -o spyweb.tar.gz https://beta.spyweb.app/windows && tar -xf spyweb.tar.gz && del spyweb.tar.gz
+```
+  </TabItem>
+  <TabItem label="Windows (PowerShell)">
+```bash
+Invoke-WebRequest -Uri https://beta.spyweb.app/windows -OutFile spyweb.tar.gz; tar -xf spyweb.tar.gz; Remove-Item spyweb.tar.gz
+```
+  </TabItem>
+</Tabs>
+
+
+## Release Structure
+The downloaded archive extracts to the following structure:
+<FileTree>
+- docs/         Offline documentation
+- examples/     Sample configs and Lua hooks
+- jobs/         Folder for per-job configs (optional)
+- ui/           Dashboard UI files
+- data Internal database file (created on first run)
+- jobs.toml     Single-file config (optional)
+- spyweb        Terminal executable
+- spyweb-tray   Background tray executable
+</FileTree>
+
+## Two Binaries
+
+SpyWeb ships as two separate binaries:
+
+### Terminal Version (`spyweb`)
+Best for headless servers, VPS, and cloud environments. Runs in the terminal with real-time logs.
+
+```bash
+./spyweb start
+```
+
+Press `Ctrl+C` to quit.
+
+### Silent Tray Version (`spyweb-tray`)
+Best for desktop use. Runs in the background without a terminal window, provides quick access via system tray.
+
+```bash
+# Windows
+spyweb-tray.exe
+```
+
+Right-click the tray icon to open the web UI or quit.
+
+:::note
+Both binaries serve the Record Viewer at **http://127.0.0.1:7979**.
+
+See [REST API](/api-and-server) for more info.
+:::
+
+## Port Configuration
+
+Customize the port with `--port` or the `SPYWEB_PORT` environment variable:
+
+```bash
+# Linux / macOS
+./spyweb start --port 9000
+
+# Or:
+SPYWEB_PORT=9000 ./spyweb start
+
+# Windows (PowerShell)
+.\spyweb.exe start --port 9000
+```
+
+## Recommended Workflow
+
+Use the **Terminal Version** for initial setup, debugging Lua hooks, and verifying selectors. Once satisfied, switch to the **Tray Version** for silent background operation.

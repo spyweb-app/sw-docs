@@ -1,0 +1,43 @@
+---
+title: fs_read_binary
+description: Reads a binary file from the job's directory.
+---
+
+import FunctionSignature from '../../../components/FunctionSignature.astro';
+
+`fs_read_binary(filename)` reads a binary file from the job's directory. Returns `nil` if the file does not exist.
+
+## Signature
+
+<FunctionSignature name="fs_read_binary" params="filename" async />
+
+:::note
+**CWD-jailed:** Reads from the job's directory first. Falls back to `shared/` folder if not found locally. Absolute paths are not allowed. Unlike `fs_read`, handles non-UTF-8 files like images and other binary formats.
+:::
+
+
+## Parameters
+
+| Param | Type | Description |
+|-------|------|-------------|
+| `filename` | string | File name (relative to job directory) |
+
+## Returns
+
+| Value | Type | Description |
+|-------|------|-------------|
+| content | string / nil | Binary-safe file content, or nil if file does not exist |
+
+## Example
+
+```lua
+local png_data = fs_read_binary("screenshot.png")
+local resp = http_multipart("https://api.example.com/upload", {
+    file = { content = png_data, filename = "page.png", type = "image/png" }
+})
+```
+
+## See Also
+
+- [fs_read](/lua-globals/fs_read) - Read text files
+- [http_multipart](/lua-globals/http_multipart) - Upload files via HTTP

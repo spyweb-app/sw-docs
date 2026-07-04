@@ -1,5 +1,5 @@
 ---
-title: Configuration
+title: TOML Config
 description: Job configuration in TOML format.
 sidebar:
   order: 1
@@ -11,24 +11,41 @@ SpyWeb validates config statically before startup or reload.
 
 ## Job Config
 
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `name` | string | *required* | Job name |
-| `url` | string | *required* | Target URL |
-| `selector` | string | *required* | CSS selector for item containers |
-| `fields` | array | *required* | Fields to extract |
-| `enabled` | bool | `true` | Enable/disable job |
-| `interval` | integer | `600` | Run interval (seconds) |
-| `keywords` | string[] | *none* | Filter by keywords |
-| `search_fields` | string[] | *none* | Limit keyword search to specific fields |
-| `debug` | bool | `false` | Save raw HTML + extracted JSON |
-| `workers` | integer | `1` | Per-job worker concurrency |
-| `urls` | string[] | *none* | Multiple entry URLs |
-| `headers` | table | *none* | Custom HTTP headers |
-| `hash_fields` | string[] | *all* | Fields for dedup hash |
-| `proxy` | table | *none* | Proxy configuration |
-| `webhook` | table | *none* | Webhook configuration |
-| `notification` | table | *auto* | Desktop notification settings |
+### Core
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `name` | string | Yes | - | Job name |
+| `url` | string | Yes | - | Target URL |
+| `selector` | string | Yes | - | CSS selector for item containers |
+| `fields` | array | Yes | - | Fields to extract |
+| `urls` | string[] | No | - | Multiple entry URLs (overrides `url`) |
+
+### Behavior
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `enabled` | bool | No | `true` | Enable/disable job |
+| `interval` | integer | No | `600` | Run interval (seconds) |
+| `workers` | integer | No | `1` | Per-job worker concurrency |
+
+### Filtering & Dedup
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `keywords` | string[] | No | - | Filter by keywords |
+| `search_fields` | string[] | No | - | Limit keyword search to specific fields |
+| `hash_fields` | string[] | No | all | Fields for dedup hash |
+
+### Network & Output
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `headers` | table | No | - | Custom HTTP headers |
+| `proxy` | table | No | - | Proxy configuration |
+| `webhook` | table | No | - | Webhook configuration |
+| `notification` | table | No | `enabled` | Desktop notification settings |
+| `debug` | bool | No | `false` | Save raw HTML + extracted JSON |
 
 ## Validation Rules
 
@@ -45,10 +62,10 @@ SpyWeb validates config statically before startup or reload.
 ## Field Syntax
 
 ```toml
-# Shorthand — "name:selector" (defaults to text content)
+# Shorthand - "name:selector" (defaults to text content)
 fields = ["title:h2", "link:a@href"]
 
-# Full form — explicit selector and attribute
+# Full form - explicit selector and attribute
 fields = [
   { name = "title", selector = "h2", att = "text" },
   { name = "link", selector = "a", att = "href" },
@@ -87,6 +104,8 @@ enabled = true
 url = "https://your-webhook.example.com/endpoint"
 headers = { "Authorization" = "Bearer your-token" }
 ```
+
+To reshape the webhook payload (e.g. for Discord embeds or Slack blocks), use `before_webhook` in your hooks. See [Webhook Payloads](/api-and-server#2-webhook-payloads) for details.
 
 ## Notification Templates
 

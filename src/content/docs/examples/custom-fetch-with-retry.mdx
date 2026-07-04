@@ -1,0 +1,63 @@
+---
+title: Custom Fetch with Retry
+description: Proxy failover, retry logic, and jitter.
+---
+
+import { TabItem } from '@astrojs/starlight/components';
+
+Replace the built-in HTTP client with a custom fetch that retries on failure, rotates through proxies, and adds jitter to prevent thundering herd.
+
+## hooks.lua
+
+```lua
+function override_fetch(request, ctx)
+    local max_retries = 3
+    local retry_delay = 2
+    local request_timeout = 15
+    local proxies = {
+        "http://user:pass@proxy1.example.com:8080",
+        "http://user:pass@proxy2.example.com:8080",
+    }
+
+    for attempt = 1, max_retries do
+        for idx, proxy_url in ipairs(proxies) do
+            local res, err = http_request({
+                url = request.url,
+                method = request.method,
+                headers = request.headers,
+                proxy = proxy_url,
+                timeout = request_timeout,
+                max_body_size = 5,
+            })
+
+            if res then
+                log(string.format(
+                    "proxy %d OK - %d bytes in %dms",
+                    idx, res.size, res.time_ms
+                ))
+                return res
+            end
+
+            log(string.format(
+                "attempt %d / proxy %d failed: %s (%s)",
+                attempt, idx, err.error, err.kind
+            ))
+        end
+
+        if attempt < max_retries then
+            local jitter = math.random(-500, 500) / 1000
+            sleep((retry_delay + jitter) * 1000)
+        end
+    end
+
+    return { error = "all retries exhausted" }
+end
+```
+
+## Key Concepts
+
+- `override_fetch` completely replaces the built-in HTTP client
+- `http_request` supports `proxy`, `timeout`, and `max_body_size`
+- Two-return pattern: `(res, nil)` on success, `(nil, err)` on failure
+- `err.kind` classifies errors: `dns`, `timeout`, `proxy`, `tls`, etc.
+- Jitter prevents multiple workers from hitting proxies simultaneously

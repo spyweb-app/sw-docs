@@ -31,5 +31,5 @@ end
 
 ## See Also
 
-- [on_error](/hook-reference/11-on-error) — Called when cycle fails
-- [on_finally](/hook-reference/12-on-finally) — Always called after success or error
+- [on_error](/hook-reference/11-on-error) - Called when cycle fails
+- [on_finally](/hook-reference/12-on-finally) - Always called after success or error

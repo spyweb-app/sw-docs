@@ -1,0 +1,54 @@
+---
+title: Custom Data Extraction
+description: CSS selectors + Lua pattern matching for complex data.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+Combine CSS selectors for structured elements with Lua pattern matching for data hidden in script tags or unstructured text.
+
+<Tabs>
+  <TabItem label="config.toml">
+```toml
+name = "Hybrid Extraction"
+url = "https://example.com/page"
+selector = ".product"
+fields = [
+  "name:h2",
+  "price:.price"
+]
+```
+  </TabItem>
+  <TabItem label="hooks.lua">
+```lua
+function after_extract(items, ctx)
+    if not ctx.last_fetch or not ctx.last_fetch.ok then
+        return items
+    end
+
+    local html = ctx.last_fetch.response.body
+
+    local app_id = html:match('var app_id = "(%w+)"')
+    local api_token = html:match("token:%s*'([^']+)'")
+
+    for _, item in ipairs(items) do
+        item.fields.app_id = app_id or "not_found"
+        item.fields.token = api_token or "not_found"
+
+        if item.fields.price then
+            item.fields.price = item.fields.price:match("%d+%.?%d*")
+        end
+    end
+
+    return items
+end
+```
+  </TabItem>
+</Tabs>
+
+## Key Concepts
+
+- `ctx.last_fetch.response.body` contains the raw HTML
+- Lua patterns (`:match()`) work like regex for simple extractions
+- `after_extract` runs on all items at once, good for batch processing
+- You can inject new fields or modify existing ones

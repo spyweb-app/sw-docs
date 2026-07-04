@@ -1,0 +1,71 @@
+---
+title: Pagination
+description: Cycle through pages using Lua globals.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+Cycle through multiple pages by appending `?page=N` to the URL. The page counter persists across runs while the process stays alive.
+
+<Tabs>
+  <TabItem label="config.toml">
+```toml
+name = "Paginated Listings"
+url = "https://example-listings.com/search"
+selector = ".listing-item"
+interval = 120
+
+fields = [
+  "title:h3",
+  "price:.price",
+  "link:a@href",
+]
+```
+  </TabItem>
+  <TabItem label="hooks.lua">
+```lua
+max_pages = 5
+
+function before_fetch(request)
+    page = page or 1
+
+    if string.find(request.url, "?") then
+        request.url = request.url .. "&page=" .. page
+    else
+        request.url = request.url .. "?page=" .. page
+    end
+
+    page = page + 1
+    if page > max_pages then page = 1 end
+
+    return request
+end
+
+function filter_item(item)
+    local title = item.fields.title or ""
+    if title == "" then return nil end
+
+    local price = tonumber(string.match(item.fields.price or "", "%d+"))
+    if price and price > 1000 then return nil end
+
+    item.fields.title = string.upper(title)
+    return item
+end
+
+function before_notify(items)
+    local capped = {}
+    for i = 1, math.min(#items, 5) do
+        capped[i] = items[i]
+    end
+    return capped
+end
+```
+  </TabItem>
+</Tabs>
+
+## Key Concepts
+
+- Lua globals (`page`) persist across runs while the process stays alive
+- Use `store_set` instead if you want the cursor to survive hot-reload
+- `filter_item` replaces the built-in keyword filter entirely
+- `before_notify` runs after items are stored, so it only affects notifications

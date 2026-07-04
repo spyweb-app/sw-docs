@@ -8,7 +8,7 @@ description: Replace the built-in CSS extractor with custom extraction logic.
 ## Signature
 
 ```lua
-function override_extract(response, ctx) -> table
+function override_extract(response, ctx) -> table | nil | false
 ```
 
 ## Parameters
@@ -22,6 +22,7 @@ function override_extract(response, ctx) -> table
 | Return | Effect |
 |--------|--------|
 | Array of structured items | The items must use the standard item structure (`{ fields = { ... } }`). The keys within `fields` must match the `fields` defined in `jobs.toml`. Output acts exactly like native extraction and will still pass through `after_extract` if defined. |
+| `nil` or `false` | Treats as zero items (no extraction) |
 
 :::note
 The `matches` field is **immutable and system-owned**. Even if you define it in your Lua table, the engine will ignore it. Instead, the engine automatically populates this field by scanning your returned `fields` against the job's keywords after the hook returns.
@@ -47,4 +48,4 @@ end
 
 ## See Also
 
-- [after_extract](/hook-reference/after-extract) — Batch filter or modify all extracted items
+- [after_extract](/hook-reference/05-after-extract) - Batch filter or modify all extracted items

@@ -1,6 +1,8 @@
 ---
-title: Hook Reference
+title: Overview
 description: Complete reference for all Lua hook functions in SpyWeb's execution pipeline.
+sidebar:
+  order: 1
 ---
 
 import { Card, CardGrid } from '@astrojs/starlight/components';
@@ -18,18 +20,7 @@ Every scrape run flows through a series of **pipeline hooks** you can define in 
 - Hook errors are **logged and skipped**, they never crash the job
 - Only define the hooks you actually need. SpyWeb pre-detects which functions exist at startup and skips the processing logic entirely for any that are missing.
 
-## What is `ctx`?
-
-Every hook receives a per-cycle context table as its second argument. `ctx` is a scratch table created fresh for each scrape cycle and discarded at the end. Use it to pass data between hooks within the same cycle (e.g., store a value in `before_fetch` and read it in `after_extract`).
-
-It also carries reserved fields set by the engine:
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `ctx.last_fetch` | table | FetchAttempt envelope with `request`, `ok`, `response` (on success), and `error` (on failure) |
-| `ctx.selector_matches` | number | Number of CSS selector hits |
-| `ctx.telemetry` | table | Performance telemetry for the cycle |
-| `ctx.shared` | table | A table shared across all hooks in the cycle |
+Every hook receives a per-cycle `ctx` table as its second argument. See [Context](/hook-reference/context) for the full reference.
 
 ## Pipeline Stages
 
@@ -58,7 +49,7 @@ The hooks execute in this exact order during each scrape cycle:
         <span class="stage-name">[HTTP fetch]</span>
         <span class="stage-thread">background thread</span>
       </div>
-      <p class="stage-desc">Automatic — uses request config from previous stage.</p>
+      <p class="stage-desc">Automatic - uses request config from previous stage.</p>
     </div>
 
     <div class="pipeline-stage stage-executor">
@@ -82,7 +73,7 @@ The hooks execute in this exact order during each scrape cycle:
         <span class="stage-name">[CSS extraction]</span>
         <span class="stage-thread">background thread</span>
       </div>
-      <p class="stage-desc">Automatic — raw parser with DOM fallback.</p>
+      <p class="stage-desc">Automatic - raw parser with DOM fallback.</p>
     </div>
 
     <div class="pipeline-stage stage-executor">
@@ -114,7 +105,7 @@ The hooks execute in this exact order during each scrape cycle:
         <span class="stage-name">[dedup + insert]</span>
         <span class="stage-thread">background thread</span>
       </div>
-      <p class="stage-desc">Automatic — atomic check-and-insert.</p>
+      <p class="stage-desc">Automatic - atomic check-and-insert.</p>
     </div>
 
     <div class="pipeline-stage stage-executor">
@@ -138,25 +129,10 @@ The hooks execute in this exact order during each scrape cycle:
         <span class="stage-name">[notify + webhook]</span>
         <span class="stage-thread">background thread</span>
       </div>
-      <p class="stage-desc">Automatic — desktop notification + webhook POST.</p>
+      <p class="stage-desc">Automatic - desktop notification + webhook POST.</p>
     </div>
   </div>
 </div>
-
-## Lifecycle Hooks
-
-After each scrape cycle completes (success or failure), these hooks fire:
-
-| Hook | When | Parameters | Location |
-|------|------|------------|----------|
-| `on_success(ctx)` | Cycle completed without errors | `ctx` | `defer.lua` |
-| `on_error(err, ctx)` | Cycle failed with an error | `error_message`, `ctx` | `defer.lua` |
-| `on_finally(ctx)` | Always, after success or error | `ctx` | `defer.lua` |
-| `on_finished()` | After all workers finish a cycle | none | `hooks.lua` |
-
-:::note
-`on_success`, `on_error`, and `on_finally` must be defined in `defer.lua`, not the main hook file. `on_finished` can be defined in the main hook file.
-:::
 
 <style>
 {`

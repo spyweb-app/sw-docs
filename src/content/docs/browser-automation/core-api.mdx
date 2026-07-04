@@ -1,0 +1,71 @@
+---
+title: Core API
+description: cdp.launch, cdp.connect, cdp.get_browser, cdp.sleep.
+sidebar:
+  order: 3
+---
+
+## `cdp.launch(options)`
+
+<span style="background:#6b7280;color:white;font-size:0.7em;padding:0.15em 0.5em;border-radius:4px">async</span>
+
+Launches a new browser instance. Returns a `Browser` object.
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `executable` | string | auto-detected | Path to browser binary. Skips auto-detection if provided. |
+| `headless` | boolean | `true` | Run headless |
+| `user_data_dir` | string | `~/.spyweb/<job-folder-name>` | Browser profile path |
+| `args` | table | - | Extra flags e.g. `{"--proxy-server=..."}` |
+| `keep_alive` | boolean | `false` | Keep browser alive after Lua GC |
+
+```lua
+local browser = cdp.launch({
+    headless = true,
+    keep_alive = true,
+    args = {"--proxy-server=http://proxy:8080"}
+})
+```
+
+## `cdp.connect(ws_url, [headers])`
+
+<span style="background:#6b7280;color:white;font-size:0.7em;padding:0.15em 0.5em;border-radius:4px">async</span>
+
+Connects to an existing browser via DevTools WebSocket URL.
+
+| Param | Type | Required | Description |
+|-------|------|----------|-------------|
+| `ws_url` | string | yes | The WebSocket URL |
+| `headers` | table | no | Custom HTTP headers (e.g. for Authorization) |
+
+```lua
+-- Connect to a local Lightpanda instance
+local browser = cdp.connect("ws://127.0.0.1:9222")
+
+-- Connect to Cloudflare Browser Rendering
+local browser = cdp.connect(
+    "wss://api.cloudflare.com/client/v4/accounts/<ID>/browser-rendering/devtools/browser",
+    { ["Authorization"] = "Bearer <TOKEN>" }
+)
+```
+
+## `cdp.get_browser()`
+
+<span style="background:#6b7280;color:white;font-size:0.7em;padding:0.15em 0.5em;border-radius:4px">async</span>
+
+Returns the path to the auto-detected browser executable.
+
+```lua
+local path = cdp.get_browser()
+log("Using browser: " .. path)
+```
+
+## `cdp.sleep(ms)`
+
+<span style="background:#6b7280;color:white;font-size:0.7em;padding:0.15em 0.5em;border-radius:4px">async</span>
+
+Asynchronous sleep for use within hooks.
+
+```lua
+cdp.sleep(1000) -- Wait 1 second
+```

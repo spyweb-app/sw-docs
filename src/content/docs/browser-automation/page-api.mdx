@@ -1,0 +1,206 @@
+---
+title: Page API
+description: Navigation, evaluation, interaction, and network methods.
+sidebar:
+  order: 5
+---
+
+The `Page` object combines native CDP transport methods with high-level Lua helpers.
+
+## Native Methods
+
+### `page:call(method, params)`
+
+<span style="background:#6b7280;color:white;font-size:0.7em;padding:0.15em 0.5em;border-radius:4px">async</span>
+
+Raw page-level CDP command.
+
+### `page:call_save(method, params, path)`
+
+<span style="background:#6b7280;color:white;font-size:0.7em;padding:0.15em 0.5em;border-radius:4px">async</span>
+
+Optimized binary call. Saves the `data` field of the response to `path` and returns the JSON without the massive data string. Supports `.png`, `.jpg`, `.pdf`, `.zip`, etc.
+
+### `page:wait_event(event, ...)`
+
+<span style="background:#6b7280;color:white;font-size:0.7em;padding:0.15em 0.5em;border-radius:4px">async</span>
+
+Wait for a page-level CDP notification. Accepts variadic args: timeout (number), predicate (function), or a table with `timeout_ms`/`timeout` and `predicate`.
+
+### `page:close()`
+
+<span style="background:#6b7280;color:white;font-size:0.7em;padding:0.15em 0.5em;border-radius:4px">sync</span>
+
+Closes the specific tab.
+
+---
+
+## Navigation
+
+### `page:open(url, [wait_until], [timeout_ms])`
+
+<span style="background:#6b7280;color:white;font-size:0.7em;padding:0.15em 0.5em;border-radius:4px">async</span>
+
+Returns `true` or `nil, error`.
+
+```lua
+local ok, err = page:open("https://example.com")
+if not ok then
+    log("Navigation failed: " .. tostring(err))
+end
+```
+
+### `page:wait_for_selector(selector, [opts])`
+
+<span style="background:#6b7280;color:white;font-size:0.7em;padding:0.15em 0.5em;border-radius:4px">async</span>
+
+Returns `true, element_info` or `nil, error`. `opts` can be timeout (number) or `{timeout, poll_ms, visible, scroll}`.
+
+```lua
+local found = page:wait_for_selector(".content", 10000)
+if found then
+    local html = page:content()
+end
+```
+
+### `page:wait_for_idle([timeout_ms], [quiet_ms])`
+
+<span style="background:#6b7280;color:white;font-size:0.7em;padding:0.15em 0.5em;border-radius:4px">async</span>
+
+Wait for network idle.
+
+### `page:wait_for_url(pattern, timeout_ms)`
+
+<span style="background:#6b7280;color:white;font-size:0.7em;padding:0.15em 0.5em;border-radius:4px">async</span>
+
+Polls `location.href` until it matches the string `pattern`. Returns the URL or `nil, error`.
+
+---
+
+## Evaluation
+
+### `page:evaluate(js)`
+
+<span style="background:#6b7280;color:white;font-size:0.7em;padding:0.15em 0.5em;border-radius:4px">async</span>
+
+Returns the result of the JavaScript expression.
+
+```lua
+local title = page:evaluate("document.title")
+local count = page:evaluate("document.querySelectorAll('.item').length")
+```
+
+### `page:content()`
+
+<span style="background:#6b7280;color:white;font-size:0.7em;padding:0.15em 0.5em;border-radius:4px">async</span>
+
+Returns the full rendered HTML.
+
+```lua
+local html = page:content()
+```
+
+### `page:screenshot(path, [opts])`
+
+<span style="background:#6b7280;color:white;font-size:0.7em;padding:0.15em 0.5em;border-radius:4px">async</span>
+
+Saves a screenshot. Subject to 10MB response limit.
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `format` | string | `"png"` | `"png"` or `"jpeg"` |
+| `quality` | number | - | 1-100 (jpeg only) |
+| `full_page` | boolean | `false` | Capture full page |
+| `fromSurface` | boolean | - | Capture from surface |
+
+```lua
+page:screenshot("page.png")
+page:screenshot("page.jpg", { format = "jpeg", quality = 80, full_page = true })
+```
+
+---
+
+## Interaction
+
+### `page:click(selector, [opts])`
+
+<span style="background:#6b7280;color:white;font-size:0.7em;padding:0.15em 0.5em;border-radius:4px">async</span>
+
+Click an element. `opts.real = true` uses hardware mouse events.
+
+```lua
+page:click("button.submit")
+page:click("button.submit", { real = true })
+```
+
+### `page:type(selector, text, [opts])`
+
+<span style="background:#6b7280;color:white;font-size:0.7em;padding:0.15em 0.5em;border-radius:4px">async</span>
+
+Type text into an element. `opts.real = true` uses hardware keyboard events.
+
+```lua
+page:type("input.search", "hello world")
+```
+
+### `page:scroll([opts])`
+
+<span style="background:#6b7280;color:white;font-size:0.7em;padding:0.15em 0.5em;border-radius:4px">async</span>
+
+Scrolls the page.
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `max_scrolls` | number | 20 | Maximum scroll attempts |
+| `step` | number | - | Pixels to scroll per step |
+| `delay_ms` | number | 250 | Delay between scrolls |
+| `until_selector` | string | - | Scroll until selector appears |
+| `until_bottom` | boolean | `true` | Scroll until page bottom |
+
+```lua
+page:scroll({ until_selector = ".footer" })
+```
+
+### `page:set_extra_headers(headers)`
+
+<span style="background:#6b7280;color:white;font-size:0.7em;padding:0.15em 0.5em;border-radius:4px">async</span>
+
+Sets extra HTTP headers via `Network.setExtraHTTPHeaders`.
+
+### `page:set_user_agent(user_agent, [opts])`
+
+<span style="background:#6b7280;color:white;font-size:0.7em;padding:0.15em 0.5em;border-radius:4px">async</span>
+
+Overrides the User-Agent. `opts` can include `accept_language` and `platform`.
+
+---
+
+## Network
+
+### `page:block_resources(types)`
+
+<span style="background:#6b7280;color:white;font-size:0.7em;padding:0.15em 0.5em;border-radius:4px">async</span>
+
+Block resource types.
+
+```lua
+page:block_resources({"image", "font", "media"})
+```
+
+### `page:wait_for_response([predicate], [timeout_ms])`
+
+<span style="background:#6b7280;color:white;font-size:0.7em;padding:0.15em 0.5em;border-radius:4px">async</span>
+
+Waits for `Network.responseReceived`. Optional `predicate` function receives params, returns `true` when match found.
+
+### `page:cookies([urls])`
+
+<span style="background:#6b7280;color:white;font-size:0.7em;padding:0.15em 0.5em;border-radius:4px">async</span>
+
+Returns all cookies, or filtered by URL if `urls` is provided.
+
+### `page:set_cookies(cookies)`
+
+<span style="background:#6b7280;color:white;font-size:0.7em;padding:0.15em 0.5em;border-radius:4px">async</span>
+
+Sets cookies via `Network.setCookies`.

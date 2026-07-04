@@ -50,5 +50,5 @@ end
 
 ## See Also
 
-- [override_fetch](/hook-reference/override-fetch) — Replace the entire fetch with custom logic
-- [after_fetch](/hook-reference/after-fetch) — Process the response after fetching
+- [override_fetch](/hook-reference/02-override-fetch) - Replace the entire fetch with custom logic
+- [after_fetch](/hook-reference/03-after-fetch) - Process the response after fetching

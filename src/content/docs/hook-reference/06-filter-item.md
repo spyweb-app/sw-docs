@@ -27,7 +27,7 @@ function filter_item(item, ctx) -> table | nil
 | Return | Effect |
 |--------|--------|
 | Item table | Keep this item |
-| `nil` | Drop this item |
+| `nil` / `false` | Drop this item |
 
 ## Example
 
@@ -49,5 +49,5 @@ end
 
 ## See Also
 
-- [after_extract](/hook-reference/after-extract) — Batch filter/modify all items
-- [before_store](/hook-reference/before-store) — Last chance before DB insert
+- [after_extract](/hook-reference/05-after-extract) - Batch filter/modify all items
+- [before_store](/hook-reference/07-before-store) - Last chance before DB insert

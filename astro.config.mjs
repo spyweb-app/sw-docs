@@ -1,56 +1,58 @@
-import { defineConfig } from 'astro/config';
-import starlight from '@astrojs/starlight';
-import unocss from '@unocss/astro';
+import { defineConfig } from "astro/config";
+import starlight from "@astrojs/starlight";
+import unocss from "@unocss/astro";
 
 export default defineConfig({
+  base: "/",
   integrations: [
     unocss({ injectReset: false }),
     starlight({
-      title: 'SpyWeb Docs',
-      favicon: '/favicon.png',
+      title: "SpyWeb Docs",
+      favicon: "/favicon.png",
+      customCss: ["./src/styles/main.scss"],
       components: {
-        Header: './src/components/Header.astro',
+        Header: "./src/components/Header.astro",
       },
       social: [
-        { icon: 'github', label: 'GitHub', href: 'https://github.com/anomalyco/spyweb' },
+        {
+          icon: "github",
+          label: "GitHub",
+          href: "https://github.com/spyweb-app/spyweb",
+        },
       ],
       sidebar: [
-        { label: 'Home', link: '/' },
+        { label: "Home", link: "/" },
+        { label: "Getting Started", link: "/getting-started" },
+        { label: "File Structure", link: "/file-structure" },
         {
-          label: 'CLI & Operations',
-          items: [
-            { autogenerate: { directory: 'cli-and-operations' } },
-          ],
+          label: "Job Configuration",
+          items: [{ autogenerate: { directory: "job-configuration" } }],
+        },
+        { label: "Sandboxing & Security", link: "/security" },
+        {
+          label: "Hook Reference",
+          items: [{ autogenerate: { directory: "hook-reference" } }],
         },
         {
-          label: 'Job Configuration',
-          items: [
-            { autogenerate: { directory: 'job-configuration' } },
-          ],
+          label: "Lua Globals",
+          items: [{ autogenerate: { directory: "lua-globals" } }],
         },
         {
-          label: 'Lua Scripting',
-          items: [
-            { autogenerate: { directory: 'lua-scripting' } },
-          ],
+          label: "CLI & Operations",
+          link: "/cli-and-operations",
         },
         {
-          label: 'Hook Reference',
-          items: [
-            { autogenerate: { directory: 'hook-reference' } },
-          ],
+          label: "Browser Automation",
+          items: [{ autogenerate: { directory: "browser-automation" } }],
+        },
+        { label: "Lua Testing", link: "/testing" },
+        {
+          label: "Examples",
+          items: [{ autogenerate: { directory: "examples" } }],
         },
         {
-          label: 'Advanced Features',
-          items: [
-            { autogenerate: { directory: 'advanced-features' } },
-          ],
-        },
-        {
-          label: 'Lua Globals',
-          items: [
-            { autogenerate: { directory: 'lua-globals' } },
-          ],
+          label: "REST API & Custom Server",
+          items: [{ autogenerate: { directory: "api-and-server" } }],
         },
       ],
     }),

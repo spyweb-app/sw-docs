@@ -1,0 +1,40 @@
+---
+title: json_encode
+description: Converts a Lua table or value into a JSON string.
+---
+
+import FunctionSignature from '../../../components/FunctionSignature.astro';
+
+`json_encode(table)` converts a Lua table or value into a JSON string. Uses SpyWeb's built-in high-performance JSON engine, handling nested tables, arrays, booleans, and nulls automatically.
+
+## Signature
+
+<FunctionSignature name="json_encode" params="table"  />
+
+
+## Parameters
+
+| Param | Type | Description |
+|-------|------|-------------|
+| `table` | any | The Lua value to encode |
+
+## Returns
+
+| Value | Type | Description |
+|-------|------|-------------|
+| json | string | JSON-encoded string |
+
+## Example
+
+```lua
+local payload = {
+    url = "https://example.com",
+    options = { waitUntil = "networkidle2" }
+}
+local body = json_encode(payload)
+local resp = http_post("https://api.rendering-service.com/render", body, {["Content-Type"]="application/json"})
+```
+
+## See Also
+
+- [json_decode](/lua-globals/json_decode) - Parse JSON string to Lua table

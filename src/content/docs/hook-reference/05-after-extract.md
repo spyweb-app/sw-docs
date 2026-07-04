@@ -20,15 +20,15 @@ function after_extract(items, ctx) -> table
 | `items` | array | Array of item tables |
 
 Each item has:
-- `item.fields` — table (string→string)
-- `item.matches` — READ-ONLY: Populated by engine
+- `item.fields` - table (string→string)
+- `item.matches` - READ-ONLY: Populated by engine
 
 ## Returns
 
 | Return | Effect |
 |--------|--------|
 | Array of items | Continue with modified items |
-| Empty table / `nil` | No items to process |
+| Empty table / `nil` / `false` | No items to process |
 
 ## Example
 
@@ -50,5 +50,5 @@ end
 
 ## See Also
 
-- [override_extract](/hook-reference/override-extract) — Replace the built-in CSS extractor
-- [filter_item](/hook-reference/filter-item) — Per-item filter (replaces built-in keyword filter)
+- [override_extract](/hook-reference/04-override-extract) - Replace the built-in CSS extractor
+- [filter_item](/hook-reference/06-filter-item) - Per-item filter (replaces built-in keyword filter)

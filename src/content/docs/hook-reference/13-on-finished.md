@@ -30,5 +30,5 @@ end
 
 ## See Also
 
-- [Execution Lifecycle](/advanced-features/execution-lifecycle) — Full lifecycle documentation
-- [Multi-Worker](/advanced-features/multi-worker) — Multi-worker concurrency details
+- [Lifecycle](/hook-reference/lifecycle) - Full lifecycle documentation
+- [Multi-Worker](/job-configuration/multi-worker) - Multi-worker concurrency details

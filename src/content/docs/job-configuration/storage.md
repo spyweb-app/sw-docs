@@ -11,7 +11,7 @@ SpyWeb is designed to be self-contained and portable, requiring no external data
 
 | Feature | KV (redb, default) | SQL (SQLite) |
 |---------|--------------------|--------------|
-| Binary Size | ~7MB | ~7MB |
+| Binary Size | ~7MB | ~8MB |
 | Philosophy | Minimalist & Zero-Configuration | Transparent & Queryable |
 | Performance | High (Low overhead) | Moderate (WAL optimized) |
 | External Access | None (Internal format) | Any SQLite tool |
@@ -49,14 +49,14 @@ Available in the `-sql` build variants.
 
 Three primary tables:
 
-1. **`records`** — `job_id` (string), `rev_ts` (nanosecond timestamp, records ordered newest-first), `json` (full record as JSON)
-2. **`seen`** — Deduplication hashes for avoiding duplicate records
-3. **`lua_user`** — Persistent key-value state backing `store_*` / `global_store_*`
+1. **`records`** - `job_id` (string), `rev_ts` (nanosecond timestamp, records ordered newest-first), `json` (full record as JSON)
+2. **`seen`** - Deduplication hashes for avoiding duplicate records
+3. **`lua_user`** - Persistent key-value state backing `store_*` / `global_store_*`
 
 ### Lua SQL Bindings
 
-- `db_query(sql, [params])` — Executes a SELECT statement and returns an array of tables
-- `db_exec(sql, [params])` — Executes any SQL statement (INSERT, UPDATE, DELETE, CREATE) and returns the number of rows affected
+- `db_query(sql, [params])` - Executes a SELECT statement and returns an array of tables
+- `db_exec(sql, [params])` - Executes any SQL statement (INSERT, UPDATE, DELETE, CREATE) and returns the number of rows affected
 
 ```lua
 -- db_query: SELECT, returns array of tables
@@ -83,7 +83,7 @@ end
 
 Use a database table as a shared work queue across multiple workers. A dedicated "Discovery" job can populate the queue for other jobs to process.
 
-**1. Initialize the Schema** — `CREATE TABLE IF NOT EXISTS queue` ensures the table exists on every load:
+**1. Initialize the Schema** - `CREATE TABLE IF NOT EXISTS queue` ensures the table exists on every load:
 
 ```lua
 -- Top-level: runs once at load time (startup/reload)
@@ -103,7 +103,7 @@ db_exec([[
 ]])
 ```
 
-**2. Worker Pick & Lock** — Each worker atomically claims the next pending task:
+**2. Worker Pick & Lock** - Each worker atomically claims the next pending task:
 
 ```lua
 function before_fetch(request, ctx)
@@ -119,7 +119,7 @@ function before_fetch(request, ctx)
 end
 ```
 
-**3. Mark Completion** — Track success or failure per task:
+**3. Mark Completion** - Track success or failure per task:
 
 ```lua
 function on_finally(ctx)

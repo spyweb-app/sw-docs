@@ -1,0 +1,37 @@
+---
+title: sleep
+description: Pauses execution for a specified duration.
+---
+
+import FunctionSignature from '../../../components/FunctionSignature.astro';
+
+`sleep(ms)` pauses execution for a specified duration. Async and yields the Lua VM, allowing other tasks to run while waiting.
+
+## Signature
+
+<FunctionSignature name="sleep" params="ms" async />
+
+
+## Parameters
+
+| Param | Type | Description |
+|-------|------|-------------|
+| `ms` | number | Duration to sleep in milliseconds |
+
+## Returns
+
+None.
+
+## Example
+
+```lua
+function before_fetch(request, ctx)
+    -- Rate limiting: wait 2 seconds between requests
+    sleep(2000)
+    return request
+end
+```
+
+## See Also
+
+- [before_fetch](/hook-reference/01-before-fetch) - Modify request before fetching
