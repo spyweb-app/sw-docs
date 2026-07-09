@@ -1,0 +1,42 @@
+---
+title: engine
+description: Runtime environment information table.
+---
+
+The `engine` global table provides read-only information about the SpyWeb runtime environment.
+
+## Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `os` | string | Operating system: `"linux"`, `"macos"`, or `"windows"` |
+| `arch` | string | CPU architecture: `"aarch64"` or `"x86_64"` |
+| `headless` | boolean | `true` if running without a display server (no GUI) |
+| `version` | string | SpyWeb version (e.g. `"1.5.1"`) |
+| `lua_version` | string | Lua runtime: `"luau"` or `"lua54"` |
+| `storage` | string | Storage backend: `"redb"` or `"sqlite"` |
+
+## Example
+
+```lua
+-- Log environment info
+log("Running SpyWeb " .. engine.version .. " on " .. engine.os .. "/" .. engine.arch)
+log("Storage: " .. engine.storage .. ", Lua: " .. engine.lua_version)
+
+-- Skip desktop notifications on headless servers
+if not engine.headless then
+    notify("Alert", "Something happened")
+end
+
+-- Conditional logic based on environment
+if engine.os == "linux" and engine.headless then
+    log("Running on headless Linux server")
+end
+```
+
+## Use Cases
+
+- Environment-aware script behavior
+- Skipping desktop notifications on servers
+- Logging runtime info for debugging
+- Platform-specific optimizations

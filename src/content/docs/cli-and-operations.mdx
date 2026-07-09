@@ -42,7 +42,7 @@ The debug command has several special behaviors:
 
 ## Running Tests
 
-SpyWeb includes a test runner for `test_*` functions defined in your Lua hooks. Each test runs in an isolated Lua VM with a temporary database (see [Lua Testing](/testing) for writing tests).
+SpyWeb includes a test runner for `test_*` functions defined in your Lua hooks and programmable API server (see [Lua Testing](/testing) for writing tests). Each test runs in an isolated Lua VM with a temporary database.
 
 ```bash
 # Run all tests across all jobs
@@ -53,6 +53,12 @@ SpyWeb includes a test runner for `test_*` functions defined in your Lua hooks. 
 
 # Run tests matching a specific pattern in a job
 ./spyweb test "My Job Name" price
+
+# Run tests for the programmable API server (auto-starts server)
+./spyweb test server
+
+# Run server tests matching a pattern
+./spyweb test server price
 ```
 
 ## Health Checks & Validation

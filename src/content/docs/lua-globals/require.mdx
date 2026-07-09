@@ -5,7 +5,7 @@ description: Loads and executes a Lua module.
 
 import FunctionSignature from '../../../components/FunctionSignature.astro';
 
-`require(module)` loads and executes a Lua module. **CWD-jailed**, searching the job's directory first, then falling back to the project root. Dots in module names convert to path separators (e.g. `foo.bar` → `foo/bar`). Modules are cached after first load.
+`require(module)` loads and executes a Lua module. **CWD-jailed**, searching the job's directory first, then falling back to the project root. Dots in module names convert to path separators (e.g. `foo.bar` → `foo/bar`). For each location, it tries `{path}.lua` first, then `{path}/init.lua`, matching standard Lua convention. Modules are cached after first load.
 
 ## Signature
 

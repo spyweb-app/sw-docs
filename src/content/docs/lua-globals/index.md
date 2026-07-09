@@ -16,6 +16,7 @@ Unlike languages where async requires `await` or `.then()`, the `async`/`sync` d
 - [http_post](http_post/) - HTTP POST request
 - [http_request](http_request/) - Generic HTTP request with full control
 - [http_multipart](http_multipart/) - Multipart file uploads
+- [tls_probe](tls_probe/) - TLS certificate inspection
 
 ## Database (SQLite variant only)
 
@@ -37,6 +38,10 @@ Unlike languages where async requires `await` or `.then()`, the `async`/`sync` d
 ## Storage
 
 - [storage](storage/) - Persistent key-value storage (job-scoped and global)
+
+## Runtime
+
+- [engine](engine/) - Runtime environment information (OS, arch, version, etc.)
 
 ## Utilities
 

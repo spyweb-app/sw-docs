@@ -1,0 +1,68 @@
+---
+title: tls_probe
+description: Inspects TLS certificate information for a host.
+---
+
+import FunctionSignature from '../../../components/FunctionSignature.astro';
+
+`tls_probe(host, [port])` connects to a host and retrieves its TLS certificate information. Returns `(cert_table, nil)` on success or `(nil, error_string)` on failure.
+
+## Signature
+
+<FunctionSignature name="tls_probe" params="host, [port]" async />
+
+:::note
+Self-signed certificates are allowed (useful for monitoring internal services). Default port is 443.
+:::
+
+## Parameters
+
+| Param | Type | Description |
+|-------|------|-------------|
+| `host` | string | Hostname to probe (e.g. `"example.com"`) |
+| `port` | number? | Port number (default: 443) |
+
+## Returns
+
+**On success:** `(cert_table, nil)`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `subject` | string | Certificate subject (e.g. `"CN=example.com"`) |
+| `issuer` | string | Certificate issuer (e.g. `"CN=WE1,O=Google Trust Services,C=US"`) |
+| `serial` | string | Serial number in hex format (e.g. `"2F:70:D5:..."`) |
+| `not_before` | string | Validity start (ISO 8601, e.g. `"2026-06-24T22:54:36Z"`) |
+| `not_after` | string | Validity end (ISO 8601, e.g. `"2026-09-22T23:54:29Z"`) |
+| `days_left` | number | Days until certificate expires |
+| `fingerprint` | string | Certificate fingerprint (XXH3 hash, e.g. `"XXH3:bfd5e240266731f2"`) |
+
+**On failure:** `(nil, error_string)`
+
+## Example
+
+```lua
+local cert, err = tls_probe("example.com")
+if cert then
+    log("Subject: " .. cert.subject)
+    log("Issuer: " .. cert.issuer)
+    log("Expires in " .. cert.days_left .. " days")
+
+    if cert.days_left < 14 then
+        notify("Cert Expiring", cert.subject .. " expires in " .. cert.days_left .. " days")
+    end
+else
+    log("TLS probe failed: " .. err)
+end
+```
+
+## Use Cases
+
+- Certificate expiry monitoring and alerts
+- Detecting certificate changes (compare fingerprints)
+- Verifying certificate chain validity
+- Security auditing of endpoints
+
+## See Also
+
+- [http_get](/lua-globals/http_get) - HTTP GET request
+- [http_request](/lua-globals/http_request) - Generic HTTP request

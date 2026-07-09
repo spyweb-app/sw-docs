@@ -7,7 +7,7 @@ sidebar:
 
 import { FileTree } from '@astrojs/starlight/components';
 
-SpyWeb includes a lightweight Lua testing mode for job hooks. Tests are kept close to production logic while running in fresh, isolated Lua VMs.
+SpyWeb includes a lightweight Lua testing mode for job hooks and the programmable API server. Tests are kept close to production logic while running in fresh, isolated Lua VMs.
 
 ## CLI Usage
 
@@ -15,11 +15,15 @@ SpyWeb includes a lightweight Lua testing mode for job hooks. Tests are kept clo
 spyweb test
 spyweb test "Job Name"
 spyweb test "Job Name" price
+spyweb test server
+spyweb test server price
 ```
 
-- `spyweb test` - runs every `test_*` function across all jobs
+- `spyweb test` - runs every `test_*` function across all jobs and the programmable API server (if `server/tests.lua` exists)
 - `spyweb test "Job Name"` - runs tests for the matching job
 - `spyweb test "Job Name" price` - runs tests whose name contains "price"
+- `spyweb test server` - runs tests for the programmable API server at `server/tests.lua`
+- `spyweb test server price` - runs server tests whose name contains "price"
 
 ## Test Discovery
 
@@ -148,6 +152,62 @@ function test_fetch_reachable()
     spyweb.assert_eq(res.status, 200)
 end
 ```
+
+## Server Testing
+
+The programmable API server (`server/init.lua`) can be tested the same way. When `server/tests.lua` exists alongside `server/init.lua`, `spyweb test` automatically:
+
+1. Starts the server on a random port
+2. Loads `init.lua` so helper functions are available to tests
+3. Runs every `test_*` function from `tests.lua`
+4. Shuts the server down when done
+
+No manual `spyweb start` needed.
+
+```lua
+-- server/init.lua
+function format_price(price)
+    return "$" .. string.format("%.2f", price)
+end
+
+get.hello = function(self)
+    return { status = 200, body = "Hello!" }
+end
+```
+
+```lua
+-- server/tests.lua
+
+-- Logic test — no HTTP needed, helpers from init.lua are available
+function test_format_price()
+    spyweb.assert_eq(format_price(100), "$100.00")
+    spyweb.assert_eq(format_price(0), "$0.00")
+end
+
+-- Integration test — hits the server over HTTP
+function test_hello_endpoint()
+    local resp = http_get("http://127.0.0.1:" .. SERVER_PORT .. "/api/v/hello")
+    spyweb.assert_eq(resp.status, 200)
+    spyweb.assert_eq(resp.body, "Hello!")
+end
+
+-- Test a 404 for missing routes
+function test_404_endpoint()
+    local resp = http_get("http://127.0.0.1:" .. SERVER_PORT .. "/api/v/nonexistent")
+    spyweb.assert_eq(resp.status, 404)
+end
+```
+
+The `SERVER_PORT` global is injected by the test runner so tests know where to reach the server. The server and all tests share the same temporary database.
+
+### File Structure
+
+<FileTree>
+- project/
+  - server/
+    - init.lua Programmable API routes
+    - tests.lua Lua tests
+</FileTree>
 
 ## Failure Output
 
