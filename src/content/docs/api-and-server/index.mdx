@@ -19,14 +19,16 @@ SpyWeb provides default endpoints for interacting with your jobs and records.
 | `GET /api/records?job_id=<id>` | JSON records for a job |
 | `GET /api/records?job_id=<id>&limit=50&after=<timestamp>` | Paginated records |
 | `GET /api/jobs` | List all configured jobs |
-| `/api/v/{name}` | Custom endpoints defined in `server/init.lua` |
+| `/api/v/{name}` | Custom endpoints — requires auth (defined in `server/init.lua`) |
+| `/api/public/{name}` | Custom endpoints — always public, no auth required (defined in `server/init.lua`) |
 
 ### Authentication
 
-If `SPYWEB_API_KEY` is set, all `/api/*` endpoints require the `X-SpyWeb-Key` header:
+If `SPYWEB_API_KEY` is set, all `/api/*` endpoints require the `X-SpyWeb-Key` header — except `/api/public/*` routes, which are always accessible without a key:
 
 ```bash
 curl -H "X-SpyWeb-Key: your_secret_key" http://127.0.0.1:7979/api/jobs
+curl http://127.0.0.1:7979/api/public/health
 ```
 
 ### Bring Your Own UI
@@ -86,17 +88,19 @@ curl -X POST -d "test body" http://127.0.0.1:7979/api/v/echo
 
 ### How It Works
 
-Each HTTP request to `/api/v/{name}`:
+Each HTTP request to `/api/v/{name}` (or `/api/public/{name}` for unauthenticated endpoints):
 
 1. Reads `server/init.lua` from disk (with hot-reload)
 2. Creates a fresh Lua VM for the request
 3. Loads the script, defining route handlers
-4. Looks up `get["name"]` or `post["name"]` - falls back to `all["name"]`
+4. For `/api/v/{name}`, looks up `get["name"]` → `post["name"]` → `all["name"]`. For `/api/public/{name}`, looks up `public.get["name"]` → `public.post["name"]` → `public.all["name"]`
 5. Calls the handler with `self` carrying the request context
 6. Returns the value as an HTTP response
 7. Drops the VM, so no shared state between requests
 
 ### Route Registration
+
+**Private endpoints** (require `X-SpyWeb-Key` if `SPYWEB_API_KEY` is set):
 
 ```lua
 function get:users()
@@ -112,7 +116,23 @@ function all:ping()
 end
 ```
 
-The method tables `get`, `post`, `put`, `patch`, `delete`, and `all` are pre-injected.
+**Public endpoints** (always accessible without a key):
+
+```lua
+function public.get:status()
+    -- handles GET /api/public/status
+end
+
+function public.post:webhook()
+    -- handles POST /api/public/webhook
+end
+
+function public.all:catchall()
+    -- handles any method on /api/public/catchall
+end
+```
+
+The method tables `get`, `post`, `put`, `patch`, `delete`, `all`, `public.get`, `public.post`, `public.put`, `public.patch`, `public.delete`, and `public.all` are pre-injected.
 
 Functions defined outside method tables are private helpers, never exposed as endpoints:
 
@@ -129,15 +149,27 @@ end
 
 ### URL Structure
 
+**Auth-protected endpoints:**
+
 ```
 /api/v/{name}/{path_args...}
 ```
+
+**Public endpoints (no key required):**
+
+```
+/api/public/{name}/{path_args...}
+```
+
+Each prefix resolves from **separate** handler tables — a handler defined under `get.*` is only reachable via `/api/v/`, and a handler defined under `public.get.*` is only reachable via `/api/public/`.
 
 | URL | Handler | `self.path_args` |
 |-----|---------|------------------|
 | `/api/v/users` | `get.users` | `{}` |
 | `/api/v/users/123` | `get.users` | `{"123"}` |
 | `/api/v/users/123/profile` | `get.users` | `{"123", "profile"}` |
+| `/api/public/status` | `public.get.status` | `{}` |
+| `/api/public/status/db` | `public.get.status` | `{"db"}` |
 
 ### Request Context (`self`)
 
@@ -258,7 +290,13 @@ end
 #### Health Check
 
 ```lua
+-- Private health check (/api/v/health)
 function all:health()
+    return { status = 200, body = "ok" }
+end
+
+-- Public health check (/api/public/health, no key required)
+function public.all:health()
     return { status = 200, body = "ok" }
 end
 ```
@@ -315,13 +353,31 @@ The server VM has access to the same globals as scraper hooks:
 
 ## Authentication
 
-The API server reuses SpyWeb's existing authentication. If `SPYWEB_API_KEY` is set, all `/api/*` routes (including `/api/v/*`) require the `X-SpyWeb-Key` header:
+The API server reuses SpyWeb's existing authentication. If `SPYWEB_API_KEY` is set, all `/api/*` routes require the `X-SpyWeb-Key` header — except `/api/public/*` routes, which are always accessible without a key:
 
 ```bash
+# Requires key
 curl -H "X-SpyWeb-Key: your_key" http://127.0.0.1:7979/api/v/hello
+
+# Always public, no key needed
+curl http://127.0.0.1:7979/api/public/health
 ```
 
-Without the header, the server returns 401 Unauthorized.
+Without the header on a protected route, the server returns 401 Unauthorized.
+
+Public endpoints are defined under the `public.*` namespace in `init.lua` — they are never reachable via `/api/v/`:
+
+```lua
+-- Private (requires key)
+function get:status()
+    return { status = 200, body = "ok" }
+end
+
+-- Public (no key required)
+function public.get:health()
+    return { status = 200, body = "ok" }
+end
+```
 
 ## Environment Variables
 
@@ -329,6 +385,7 @@ Without the header, the server returns 401 Unauthorized.
 |----------|---------|-------------|
 | `SPYWEB_PORT` | `7979` | Server port |
 | `SPYWEB_API_KEY` | *none* | API authentication key |
+| `SPYWEB_DISABLE_SERVER` | *none* | Set to any value to skip starting the web server |
 
 ## Data Directory
 
@@ -350,7 +407,7 @@ The server's `fs_*` operations are scoped to the `server/` directory:
 
 **All endpoints return 500:** Check `server/error.log` for syntax or runtime errors.
 
-**Endpoints return 404:** Verify the handler is in the correct method table (`get`, `post`, etc.) and the name matches the URL segment exactly. The `all` table is checked last.
+**Endpoints return 404:** Verify the handler is in the correct method table for the URL prefix — `/api/v/{name}` uses `get.{name}`, `post.{name}`, etc.; `/api/public/{name}` uses `public.get.{name}`, `public.post.{name}`, etc. The `all` (or `public.all`) table is checked last.
 
 **Body is empty or truncated:** Request body is capped at 10MB.
 

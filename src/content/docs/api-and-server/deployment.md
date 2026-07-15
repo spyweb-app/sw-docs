@@ -57,6 +57,14 @@ ExecStart=/root/spyweb/spyweb start --port 8080
 Environment=SPYWEB_PORT=8080
 ```
 
+Disable the web server entirely (scraping only):
+
+```ini
+ExecStart=/root/spyweb/spyweb start --no-server
+# or
+Environment=SPYWEB_DISABLE_SERVER=1
+```
+
 ```bash
 sudo systemctl daemon-reload
 sudo systemctl enable spyweb

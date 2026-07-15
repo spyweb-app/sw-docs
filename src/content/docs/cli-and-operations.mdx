@@ -26,6 +26,14 @@ You can customize the port for the dashboard and API using the `--port` flag or 
 SPYWEB_PORT=9000 ./spyweb start
 ```
 
+To start without the web server (scraping/monitoring only), use `--no-server` or the `SPYWEB_DISABLE_SERVER` environment variable:
+
+```bash
+./spyweb start --no-server
+# or
+SPYWEB_DISABLE_SERVER=1 ./spyweb start
+```
+
 ## Debugging Jobs
 
 The `debug` command is ideal for iterative development and testing your scraping configuration:

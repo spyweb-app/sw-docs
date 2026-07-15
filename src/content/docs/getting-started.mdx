@@ -95,6 +95,15 @@ SPYWEB_PORT=9000 ./spyweb start
 .\spyweb.exe start --port 9000
 ```
 
+To start without the web server (scraping/monitoring only), use `--no-server` or the `SPYWEB_DISABLE_SERVER` environment variable:
+
+```bash
+./spyweb start --no-server
+
+# Or:
+SPYWEB_DISABLE_SERVER=1 ./spyweb start
+```
+
 ## Recommended Workflow
 
 Use the **Terminal Version** for initial setup, debugging Lua hooks, and verifying selectors. Once satisfied, switch to the **Tray Version** for silent background operation.
