@@ -65,6 +65,14 @@ ExecStart=/root/spyweb/spyweb start --no-server
 Environment=SPYWEB_DISABLE_SERVER=1
 ```
 
+Control log verbosity:
+
+```ini
+Environment=SPYWEB_LOG=warn
+# or
+Environment=SPYWEB_LOG=error
+```
+
 ```bash
 sudo systemctl daemon-reload
 sudo systemctl enable spyweb

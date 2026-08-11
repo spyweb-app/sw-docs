@@ -34,6 +34,23 @@ To start without the web server (scraping/monitoring only), use `--no-server` or
 SPYWEB_DISABLE_SERVER=1 ./spyweb start
 ```
 
+Control log verbosity with `-q`/`-qq` or the `SPYWEB_LOG` environment variable:
+
+```bash
+# Warnings and errors only
+./spyweb start -q
+
+# Errors only
+./spyweb start -qq
+
+# Or via environment variable
+SPYWEB_LOG=warn ./spyweb start
+SPYWEB_LOG=error ./spyweb start
+
+# Flags and other options can be combined freely:
+./spyweb start -nqq --port 9000
+```
+
 ## Debugging Jobs
 
 The `debug` command is ideal for iterative development and testing your scraping configuration:

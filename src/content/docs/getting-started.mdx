@@ -104,6 +104,20 @@ To start without the web server (scraping/monitoring only), use `--no-server` or
 SPYWEB_DISABLE_SERVER=1 ./spyweb start
 ```
 
+Control log verbosity with `-q`/`-qq` or the `SPYWEB_LOG` environment variable:
+
+```bash
+# Warnings and errors only
+./spyweb start -q
+
+# Errors only
+./spyweb start -qq
+
+# Flags can be combined:
+./spyweb start -nqq
+SPYWEB_LOG=error ./spyweb start --no-server
+```
+
 ## Recommended Workflow
 
 Use the **Terminal Version** for initial setup, debugging Lua hooks, and verifying selectors. Once satisfied, switch to the **Tray Version** for silent background operation.

@@ -386,6 +386,15 @@ end
 | `SPYWEB_PORT` | `7979` | Server port |
 | `SPYWEB_API_KEY` | *none* | API authentication key |
 | `SPYWEB_DISABLE_SERVER` | *none* | Set to any value to skip starting the web server |
+| `SPYWEB_LOG` | `info` | Log verbosity: `info` (all), `warn` (warnings+errors), `error` (errors only) |
+
+The server can also be configured via CLI flags on `spyweb start`:
+
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--port <PORT>` | | Customize the server port (default 7979) |
+| `--no-server` | `-n` | Start without the web server |
+| `--quiet` | `-q` | Suppress info logs (use `-qq` for errors only) |
 
 ## Data Directory
 

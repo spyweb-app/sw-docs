@@ -142,12 +142,15 @@ end
 
 | Setting | Type | Scope | Description |
 |---------|------|-------|-------------|
-| `SPYWEB_THREADS` | Env Var | Process | Total OS threads available to the runtime |
-| `workers` | Config | Per-Job | Number of concurrent scraping workers |
+| `SPYWEB_THREADS` | Env Var | Process | OS threads backing the app's executor (default 2, clamped 1-64) |
+| `workers` | Config | Per-Job | Concurrent scraping workers per job |
 
-Set `SPYWEB_THREADS` to your CPU core count. A `workers` value higher than `SPYWEB_THREADS` causes contention - workers queue up waiting for a free thread. Tune `workers` against your target's rate limits.
+Workers are async tasks, not OS threads. They run on the app's executor threads (`SPYWEB_THREADS`) and overlap network I/O, so `workers` can exceed `SPYWEB_THREADS` — a single executor thread multiplexes many concurrent I/O-bound workers. CPU-bound hook work runs in parallel only up to the executor thread count. Blocking steps such as the HTTP fetch and HTML/CSS extraction are handed off to dedicated threads on demand.
 
-If `SPYWEB_THREADS` is not set, the app defaults to **2 threads**. Set it explicitly for production.
+Defaults and sizing:
+
+- `SPYWEB_THREADS` defaults to **2** and is capped at 64. Set it to your machine's CPU core count.
+- `workers` defaults to **1**. Choose it against your target's rate limits and your memory budget — each in-flight response body is buffered up to `max_body_size` (default 10 MB), so N concurrent workers can hold roughly N × max_body_size in memory.
 
 ## Config Reference
 
