@@ -7,6 +7,10 @@ import FunctionSignature from '../../../components/FunctionSignature.astro';
 
 `http_request(options)` performs an arbitrary HTTP request with full control over method, URL, body, headers, proxy, timeout, and response size limit. Returns `(response, nil)` on success or `(nil, error_table)` on failure.
 
+:::note[Success definition]
+Any HTTP response (including 4xx/5xx) is considered success — only network errors (DNS, timeout, etc.) are failures. See [HTTP Error Handling](/hook-reference/http-error-handling) for details.
+:::
+
 ## Signature
 
 <FunctionSignature name="http_request" params="options" async />

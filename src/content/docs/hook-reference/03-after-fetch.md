@@ -5,6 +5,10 @@ description: Inspect success or failure, mutate body on success, or return a syn
 
 `after_fetch(fetch_result, ctx)` runs after every fetch attempt. It receives a stable envelope with request context, plus either a response snapshot or an error snapshot. On successful fetches, only `response.body` is accepted back into the pipeline. On failed fetches, Lua may return a full synthetic `response` table to continue extraction anyway.
 
+:::note[Success definition]
+Only 2xx status codes are considered success in the pipeline. HTTP bindings (`http_get`, etc.) treat any HTTP response as success. See [HTTP Error Handling](/hook-reference/http-error-handling) for the full explanation.
+:::
+
 ## Signature
 
 ```lua

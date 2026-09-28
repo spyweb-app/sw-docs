@@ -27,6 +27,7 @@ Unlike languages where async requires `await` or `.then()`, the `async`/`sync` d
 
 - [json_encode](json_encode/) - Encode Lua value to JSON string
 - [json_decode](json_decode/) - Decode JSON string to Lua value
+- [JSON_EMPTY_ARRAY](json_empty_array/) - Sentinel value for empty JSON arrays
 
 ## File I/O
 

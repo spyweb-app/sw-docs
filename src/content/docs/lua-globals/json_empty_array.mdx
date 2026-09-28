@@ -1,0 +1,51 @@
+---
+title: JSON_EMPTY_ARRAY
+description: Sentinel value that forces empty JSON array serialization.
+---
+
+`JSON_EMPTY_ARRAY` is a global sentinel value that serializes as `[]` in JSON output. Use it when you need an empty array instead of the default empty object `{}`.
+
+## Usage
+
+Assign `JSON_EMPTY_ARRAY` to any table key to force an empty JSON array:
+
+```lua
+-- Without sentinel: empty table becomes {}
+json_encode({ items = {} })             -- '{"items":{}}'
+
+-- With sentinel: force empty array
+json_encode({ items = JSON_EMPTY_ARRAY })  -- '{"items":[]}'
+```
+
+## Server responses
+
+```lua
+get.data = function(self)
+    return {
+        status = 200,
+        body = {
+            items = JSON_EMPTY_ARRAY,
+            meta = {}  -- this stays as {}
+        },
+    }
+end
+```
+
+## With array parameter
+
+The `array` parameter on `json_encode` works independently. `JSON_EMPTY_ARRAY` always produces `[]` regardless of the flag:
+
+```lua
+json_encode(JSON_EMPTY_ARRAY)          -- "[]"
+json_encode(JSON_EMPTY_ARRAY, false)   -- "[]"
+json_encode(JSON_EMPTY_ARRAY, true)    -- "[]"
+```
+
+:::caution[Do not mutate]
+Adding keys to `JSON_EMPTY_ARRAY` will change its serialization behavior. Treat it as immutable.
+:::
+
+## See Also
+
+- [json_encode](/lua-globals/json_encode) - Encode Lua value to JSON string
+- [json_decode](/lua-globals/json_decode) - Decode JSON string to Lua value

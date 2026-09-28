@@ -5,18 +5,20 @@ description: Converts a Lua table or value into a JSON string.
 
 import FunctionSignature from '../../../components/FunctionSignature.astro';
 
-`json_encode(table)` converts a Lua table or value into a JSON string. Uses SpyWeb's built-in high-performance JSON engine, handling nested tables, arrays, booleans, and nulls automatically.
+`json_encode(value, array?)` converts a Lua table or value into a JSON string. Uses SpyWeb's built-in high-performance JSON engine, handling nested tables, arrays, booleans, and nulls automatically.
+
+Empty Lua tables `{}` serialize as `{}` by default. Use [`JSON_EMPTY_ARRAY`](/lua-globals/json_empty_array) to force `[]`, or pass `array=true` to treat all empty tables as arrays.
 
 ## Signature
 
-<FunctionSignature name="json_encode" params="table"  />
-
+<FunctionSignature name="json_encode" params="value, array?"  />
 
 ## Parameters
 
 | Param | Type | Description |
 |-------|------|-------------|
-| `table` | any | The Lua value to encode |
+| `value` | any | The Lua value to encode |
+| `array?` | boolean | If `true`, all genuinely empty tables become `[]`. Defaults to `false`. |
 
 ## Returns
 
@@ -24,7 +26,9 @@ import FunctionSignature from '../../../components/FunctionSignature.astro';
 |-------|------|-------------|
 | json | string | JSON-encoded string |
 
-## Example
+## Examples
+
+### Basic usage
 
 ```lua
 local payload = {
@@ -35,6 +39,35 @@ local body = json_encode(payload)
 local resp = http_post("https://api.rendering-service.com/render", body, {["Content-Type"]="application/json"})
 ```
 
+### Empty arrays
+
+```lua
+-- Empty tables become {} by default
+json_encode({})                    -- "{}"
+
+-- Use JSON_EMPTY_ARRAY to force []
+json_encode(JSON_EMPTY_ARRAY)      -- "[]"
+json_encode({ items = JSON_EMPTY_ARRAY })  -- '{"items":[]}'
+
+-- Or use array=true blanket override
+json_encode({ items = {} }, true)  -- '{"items":[]}'
+```
+
+### Server response
+
+```lua
+get.data = function(self)
+    return {
+        status = 200,
+        body = json_encode({
+            items = JSON_EMPTY_ARRAY,
+            meta = {}  -- this stays as {}
+        }),
+    }
+end
+```
+
 ## See Also
 
+- [JSON_EMPTY_ARRAY](/lua-globals/json_empty_array) - Sentinel value for empty JSON arrays
 - [json_decode](/lua-globals/json_decode) - Parse JSON string to Lua table

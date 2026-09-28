@@ -58,6 +58,8 @@ Three primary tables:
 - `db_query(sql, [params])` - Executes a SELECT statement and returns an array of tables
 - `db_exec(sql, [params])` - Executes any SQL statement (INSERT, UPDATE, DELETE, CREATE) and returns the number of rows affected
 
+`params` is a positional array for `?` placeholders. Leading/interior `nil` binds as SQL `NULL`. Lua tables do not store trailing `nil` — do not end the table with `nil`; use a SQL literal `NULL` or put a non-nil value after that slot.
+
 ```lua
 -- db_query: SELECT, returns array of tables
 local rows = db_query("SELECT json FROM records WHERE job_id = ? LIMIT 5", { "my-job" })
@@ -65,6 +67,11 @@ for _, row in ipairs(rows) do
     local data = json_decode(row.json)
     print(data.title)
 end
+
+-- nil hole → SQL NULL (leading/interior only)
+db_exec("INSERT INTO t (a, b, c) VALUES (?, ?, ?)", { 1, nil, 3 })
+-- trailing NULL: put NULL in SQL text
+db_exec("INSERT INTO t (a, b, c) VALUES (?, ?, NULL)", { 1, 2 })
 
 -- db_exec: any SQL, returns rows affected
 db_exec([[

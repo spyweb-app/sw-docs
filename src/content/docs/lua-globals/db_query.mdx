@@ -23,6 +23,21 @@ Available only on the **SQL (SQLite)** build variant. Integer/Real/Text/Null SQL
 | `sql` | string | The SQL SELECT statement |
 | `params` | table? | Optional array of positional parameters for prepared statements (`?` placeholders) |
 
+### `nil` and SQL `NULL`
+
+`params` is a positional array. Leading/interior `nil` holes bind as SQL `NULL`:
+
+```lua
+-- b is NULL
+db_query("SELECT id FROM t WHERE a = ? AND b IS ? AND c = ?", { 1, nil, 3 })
+```
+
+Lua tables do **not** store a trailing `nil` — `{ 1, 2, nil }` is the same as `{ 1, 2 }`. Do not end the params table with `nil`. For a trailing SQL `NULL`, put `NULL` in the statement text or ensure a non-nil value comes after that slot:
+
+```lua
+db_query("SELECT id FROM t WHERE a = ? AND b = ? AND c IS NULL", { 1, 2 })
+```
+
 ## Returns
 
 | Value | Type | Description |

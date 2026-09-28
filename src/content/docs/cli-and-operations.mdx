@@ -10,6 +10,32 @@ SpyWeb ships as two separate binaries to provide the best experience for your en
 
 A typical workflow is to use the **Terminal Version** for your initial setup, debugging Lua hooks, and verifying selectors. Once you are happy with the results, switch to the **Tray Version** to let it run silently in the background.
 
+## Quick Reference
+
+| Command | Description |
+|---------|-------------|
+| `spyweb start` | Start the engine and web server |
+| `spyweb start --port 9000` | Start on a custom port |
+| `spyweb start -n` | Start without the web server (scrape only) |
+| `spyweb start -q` | Start with reduced log output (warnings + errors) |
+| `spyweb start -qq` | Start with errors only |
+| `spyweb debug <job>` | Run a job once with debug output |
+| `spyweb test` | Run all Lua tests across all jobs |
+| `spyweb test <job>` | Run tests for a specific job |
+| `spyweb test <job> <pattern>` | Run tests matching a substring |
+| `spyweb test server` | Run the API server test suite |
+| `spyweb check` | Full health check (version + config + updates) |
+| `spyweb check config` | Validate config and Lua syntax only |
+| `spyweb check update` | Check for newer version only |
+| `spyweb update` | Download and install the latest version |
+| `spyweb update -c` | Check for updates without installing |
+| `spyweb update -f` | Force download and replace |
+| `spyweb profile check` | Show browser profile status |
+| `spyweb profile clear all` | Wipe all browser caches |
+| `spyweb profile delete all` | Delete all profile directories |
+| `spyweb types` | Write Lua LSP type definitions to disk |
+| `spyweb version` | Print version, engine, and storage info |
+
 ## Starting the Engine
 
 To start the monitoring engine on all enabled jobs:

@@ -347,7 +347,7 @@ The server VM has access to the same globals as scraper hooks:
 | HTTP Client | `http_get(url, [headers])`, `http_post(url, body, [headers])`, `http_request({...})`, `http_multipart(url, fields, [headers])` |
 | Storage | `global_store_set(key, value)`, `global_store_get(key)`, `global_store_incr(key, default, delta)`, `global_store_delete(key)` |
 | Database (SQLite) | `db_query(sql, [params])`, `db_exec(sql, [params])` |
-| Utilities | `json_encode(value)`, `json_decode(string)`, `env_get(key)`, `defer(fn)`, `sleep(ms)`, `notify(title, body, [timeout])` |
+| Utilities | `json_encode(value, array?)`, `json_decode(string)`, `JSON_EMPTY_ARRAY`, `env_get(key)`, `defer(fn)`, `sleep(ms)`, `notify(title, body, [timeout])` |
 
 > File writes go to `server/` by default. Use `shared/` prefix (e.g. `fs_overwrite("shared/data.json", ...)`) to write to the shared folder. Reads scan `server/` first, then fall back to `shared/`.
 

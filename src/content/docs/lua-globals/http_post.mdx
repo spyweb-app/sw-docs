@@ -7,6 +7,10 @@ import FunctionSignature from '../../../components/FunctionSignature.astro';
 
 `http_post(url, body, [headers])` performs an HTTP POST request. Returns `(response, nil)` on success or `(nil, error_table)` on failure.
 
+:::note[Success definition]
+Any HTTP response (including 4xx/5xx) is considered success — only network errors (DNS, timeout, etc.) are failures. See [HTTP Error Handling](/hook-reference/http-error-handling) for details.
+:::
+
 ## Signature
 
 <FunctionSignature name="http_post" params="url, body, [headers]" async />
